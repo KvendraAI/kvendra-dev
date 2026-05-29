@@ -1,0 +1,20 @@
+{/* generated from CMP-KVD-PLATFORM — do not edit by hand */}
+
+**Kvendra Platform** (AGPL-3.0) is written in TypeScript (Node 20.x) on a stack of Fastify HTTP server + PostgreSQL 16 + pgvector.
+
+The open knowledge-base engine: a single-tenant KB you self-host. A developer brings it up with docker-compose to get their own complete local KB — Postgres + pgvector + engine + skills runtime.
+
+## What the engine gives you
+
+- The KB engine: 20 entity types, the entity + transaction + typed server-side changelog model, relations, history, transactions.
+- Pluggable embeddings (bring-your-own provider).
+- Basic auth: static HTTP token / API key.
+- Self-host stack: docker-compose + multi-stage Dockerfile.
+- Public engine API: an MCP server over JSON-RPC (Fastify), moving to a streaming HTTP transport.
+
+## Embeddings and semantic search
+
+Embeddings are pluggable; the wire alias kvendra-embedding-v1 is stable across providers (1024-dimension, L2-normalized). A deterministic mock provider is used in staging; a hosted Titan-class provider is the production target.
+
+Semantic search ranks entities by cosine similarity over the embedding vectors.
+

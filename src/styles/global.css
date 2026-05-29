@@ -1,0 +1,303 @@
+/* =============================================================================
+ * kvendra.dev global styles.
+ *
+ * Tokens + reset are copied from kvendra-web (REL-KVD-WEB-0.6.x); this file is
+ * a focused portal-specific layer (the kvendra-web global.css carries a large
+ * amount of commercial-page styling that does not apply to the open docs site,
+ * so it is adapted here using the same tokens rather than copied wholesale).
+ * Self-hosted fonts are imported from BaseLayout via Fontsource.
+ * =============================================================================
+ */
+
+html {
+  font-family: var(--body);
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-size: var(--fs-body);
+  transition: background-color var(--dur-discreto) var(--ease-discreto),
+    color var(--dur-discreto) var(--ease-discreto);
+}
+
+/* Layout shell ------------------------------------------------------------- */
+.kvd-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.kvd-container {
+  width: 100%;
+  max-width: var(--container-narrow);
+  margin-inline: auto;
+  padding-inline: var(--sp-5);
+}
+
+/* Header ------------------------------------------------------------------- */
+.kvd-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.kvd-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  height: 60px;
+  max-width: var(--container-medium);
+  margin-inline: auto;
+  padding-inline: var(--sp-5);
+}
+
+.kvd-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+}
+
+.kvd-nav a {
+  font-size: var(--fs-sm);
+  color: var(--fog);
+  letter-spacing: var(--ls-tight);
+  transition: color var(--dur-mecanico) var(--ease-mecanico);
+}
+
+.kvd-nav a:hover,
+.kvd-nav a[aria-current='page'] {
+  color: var(--fg);
+}
+
+.kvd-nav a[aria-current='page'] {
+  border-bottom: 2px solid var(--phos);
+}
+
+/* Main / prose ------------------------------------------------------------- */
+.kvd-main {
+  flex: 1;
+  padding-block: var(--sp-8);
+}
+
+.kvd-prose {
+  max-width: 72ch;
+}
+
+.kvd-prose h1 {
+  font-family: var(--display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  letter-spacing: var(--ls-display);
+  line-height: 1.1;
+  margin-bottom: var(--sp-5);
+}
+
+.kvd-prose h2 {
+  font-family: var(--display);
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  letter-spacing: var(--ls-tight);
+  margin-top: var(--sp-8);
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.kvd-prose h3 {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: var(--sp-6);
+  margin-bottom: var(--sp-3);
+}
+
+.kvd-prose p,
+.kvd-prose ul,
+.kvd-prose ol {
+  margin-bottom: var(--sp-4);
+}
+
+.kvd-prose ul,
+.kvd-prose ol {
+  padding-left: var(--sp-5);
+}
+
+.kvd-prose ul {
+  list-style: square;
+}
+
+.kvd-prose ol {
+  list-style: decimal;
+}
+
+.kvd-prose li {
+  margin-bottom: var(--sp-2);
+}
+
+.kvd-prose a {
+  color: var(--phos-readable);
+  border-bottom: 1px solid currentColor;
+}
+
+.kvd-prose a:hover {
+  color: var(--fg);
+}
+
+.kvd-prose strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.kvd-prose code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  letter-spacing: var(--ls-mono);
+  background: var(--bg-elev);
+  border: 1px solid var(--line-soft);
+  padding: 0.1em 0.35em;
+}
+
+.kvd-prose pre {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--phos);
+  padding: var(--sp-4);
+  overflow-x: auto;
+  margin-bottom: var(--sp-5);
+}
+
+.kvd-prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.kvd-prose blockquote {
+  font-family: var(--serif);
+  font-style: italic;
+  border-left: 3px solid var(--line-soft);
+  padding-left: var(--sp-4);
+  color: var(--fog);
+  margin-bottom: var(--sp-4);
+}
+
+.kvd-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  margin-bottom: var(--sp-5);
+}
+
+.kvd-prose th,
+.kvd-prose td {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line-soft);
+}
+
+.kvd-prose th {
+  background: var(--bg-elev);
+  font-family: var(--display);
+  font-weight: 600;
+}
+
+.kvd-kicker {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-tick);
+  text-transform: uppercase;
+  color: var(--phos-readable);
+  margin-bottom: var(--sp-3);
+}
+
+/* Footer ------------------------------------------------------------------- */
+.kvd-footer {
+  border-top: 1px solid var(--line-soft);
+  padding-block: var(--sp-6);
+  font-size: var(--fs-sm);
+  color: var(--fog);
+}
+
+.kvd-footer__inner {
+  max-width: var(--container-medium);
+  margin-inline: auto;
+  padding-inline: var(--sp-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kvd-footer a {
+  color: var(--fog);
+  border-bottom: 1px solid transparent;
+}
+
+.kvd-footer a:hover {
+  color: var(--fg);
+  border-bottom-color: var(--phos);
+}
+
+/* Hero / landing ----------------------------------------------------------- */
+.kvd-hero {
+  padding-block: var(--sp-9) var(--sp-7);
+}
+
+.kvd-hero h1 {
+  font-family: var(--display);
+  font-size: var(--fs-d2);
+  font-weight: 600;
+  letter-spacing: var(--ls-display);
+  line-height: 1.0;
+  margin-bottom: var(--sp-5);
+}
+
+.kvd-hero p {
+  font-size: 22px;
+  color: var(--fog);
+  max-width: 60ch;
+}
+
+.kvd-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-4);
+  margin-top: var(--sp-7);
+}
+
+.kvd-card {
+  display: block;
+  border: 1px solid var(--line-soft);
+  padding: var(--sp-5);
+  transition: border-color var(--dur-mecanico) var(--ease-mecanico),
+    transform var(--dur-mecanico) var(--ease-mecanico);
+}
+
+.kvd-card:hover {
+  border-color: var(--phos);
+  transform: translateY(-2px);
+}
+
+.kvd-card h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  margin-bottom: var(--sp-2);
+}
+
+.kvd-card p {
+  font-size: var(--fs-sm);
+  color: var(--fog);
+}

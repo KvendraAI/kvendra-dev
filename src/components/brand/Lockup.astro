@@ -1,0 +1,55 @@
+---
+/**
+ * Lockup — KvendraMark + wordmark inline.
+ * Copied from kvendra-web (REL-KVD-WEB-0.6.x).
+ *
+ * Props: size (base, default 48; mark = size*1.1, word = size, gap = size*0.4),
+ *        color, accent, title.
+ */
+import KvendraMark from './KvendraMark.astro';
+
+interface Props {
+  size?: number;
+  color?: string;
+  accent?: string;
+  title?: string;
+  class?: string;
+}
+
+const {
+  size = 48,
+  color = 'var(--paper)',
+  accent = 'var(--phos)',
+  title = 'Kvendra',
+  class: className,
+} = Astro.props;
+
+const markSize = size * 1.1;
+const gap = size * 0.4;
+---
+
+<span
+  class={`kvd-lockup ${className ?? ''}`}
+  style={`--lk-gap:${gap}px; --lk-size:${size}px; --lk-color:${color};`}
+  aria-label={title}
+  role="img"
+>
+  <KvendraMark size={markSize} color={color} accent={accent} />
+  <span class="kvd-lockup__word" aria-hidden="true">kvendra</span>
+</span>
+
+<style>
+  .kvd-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--lk-gap);
+  }
+  .kvd-lockup__word {
+    font-family: var(--display);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    font-size: var(--lk-size);
+    line-height: 1;
+    color: var(--lk-color);
+  }
+</style>

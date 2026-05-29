@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const sections = [
+  { href: '/cli/', title: 'CLI', blurb: 'The Rust binary: a zero-knowledge vault and an MCP capability broker with seven open-core primitives.' },
+  { href: '/security/', title: 'Security model', blurb: 'Why the vault is zero-knowledge, how the broker keeps secrets away from the model, and the threat model.' },
+  { href: '/platform/', title: 'Platform', blurb: 'The self-hosted KB engine: PostgreSQL + pgvector, embeddings, and cosine semantic search.' },
+  { href: '/entities/', title: 'Entities', blurb: 'The typed knowledge model: what each entity type is for and how they relate.' },
+  { href: '/pipelines/', title: 'Pipelines', blurb: 'Transactions, draft/activate/cancel, and the typed server-side changelog.' },
+  { href: '/sql/', title: 'SQL', blurb: 'Proposed relational schemas for the open knowledge-base engine.' },
+];
+---
+
+<BaseLayout
+  title="Kvendra — developer docs"
+  description="Open-core developer documentation for Kvendra: the CLI, the Platform engine and the Skills plugin. Architecture, security, embeddings, entities, pipelines and SQL — all generated from the Kvendra knowledge base."
+>
+  <section class="kvd-hero">
+    <span class="kvd-kicker">kvendra.dev · open core</span>
+    <h1>Build on Kvendra.</h1>
+    <p>
+      Deep, open-source developer documentation for the three open pieces of
+      Kvendra — the CLI, the Platform engine and the Skills plugin. Every page
+      on this site is generated from the Kvendra knowledge base itself: the
+      product documenting itself.
+    </p>
+  </section>
+
+  <section class="kvd-prose">
+    <h2>The three open pieces</h2>
+    <p>
+      Kvendra is three independent open-core components plus the skills layer
+      that joins them. Each resolves a different problem and can be used on its
+      own:
+    </p>
+    <ul>
+      <li>
+        <strong>Kvendra CLI</strong> (Apache-2.0) — a local, zero-knowledge
+        vault and an MCP capability broker. It runs sensitive operations on your
+        behalf so a language model never touches your tokens.
+      </li>
+      <li>
+        <strong>Kvendra Platform</strong> (AGPL-3.0) — the knowledge-base engine
+        you self-host with <code>docker-compose</code> to get your own complete,
+        single-tenant KB.
+      </li>
+      <li>
+        <strong>Kvendra Skills</strong> (Apache-2.0) — the Claude Code plugin
+        that orchestrates the CLI and the KB into end-to-end workflows.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="kvd-cards">
+      {
+        sections.map((s) => (
+          <a class="kvd-card" href={s.href}>
+            <h3>{s.title}</h3>
+            <p>{s.blurb}</p>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="kvd-prose" style="margin-top: var(--sp-8);">
+    <h2>Looking for the product overview?</h2>
+    <p>
+      This portal is the deep, technical reference. For a high-level overview of
+      what Kvendra is and who it is for, head to
+      <a href="https://kvendra.com">kvendra.com</a> — and come back here when you
+      want the details.
+    </p>
+  </section>
+</BaseLayout>

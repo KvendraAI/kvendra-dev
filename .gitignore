@@ -1,0 +1,18 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Astro generated types
+.astro/
+
+# KB cache directory — transient fetch artifacts are not committed...
+src/content/.kb-cache/
+# ...except the reproducible, hand-vetted offline dump, which IS committed so
+# the build is deterministic without a live MCP connection (see scripts/kb-fetch.mjs).
+!src/content/.kb-cache/kb-dump.json
+
+# OS / editor
+.DS_Store
+*.log

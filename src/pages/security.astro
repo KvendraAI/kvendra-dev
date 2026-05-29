@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Security model — Kvendra developer docs"
+  description="Kvendra's security model: a zero-knowledge Level 2 vault, an HMAC-allowlisted capability broker, the CLI running on the host, and the threat model behind those choices."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Concepts</span>
+    <h1>The security model</h1>
+    <p>
+      Kvendra's security posture rests on one idea: the component that reasons
+      about what to do should never be the component that holds the keys. Three
+      design choices follow from that — a zero-knowledge vault, a brokered
+      capability layer, and running the CLI directly on the host.
+    </p>
+
+    <h2>Zero-knowledge vault (Level 2)</h2>
+    <p>
+      Secrets are stored encrypted at rest with AES-256-GCM. The encryption key
+      is derived from a master password through Argon2id, a memory-hard key
+      derivation function, so the plaintext keys never live on disk and are only
+      held in memory while the vault is unlocked. A sentinel value lets the CLI
+      verify the master password without storing it, and Argon2id-hashed
+      recovery codes provide a break-glass path.
+    </p>
+    <p>
+      The audit log is a local SQLite database whose entries form an HMAC chain:
+      each record is signed, so tampering with or deleting a past entry is
+      detectable. Every brokered operation — especially the unsafe escape
+      hatch — writes a signed record.
+    </p>
+
+    <h2>The broker and signed allowlists</h2>
+    <p>
+      The CLI exposes capabilities as primitives (git, github, npm, pypi, http,
+      shell). A caller asks the broker to run an operation; it never receives the
+      secret. Each profile carries an allowlist that is itself HMAC-signed, so a
+      request is only honoured if it matches a signed entry. This turns "please
+      do not leak tokens" from a guideline into an enforced boundary.
+    </p>
+    <blockquote>
+      The obligation to route sensitive operations through the broker comes from
+      the skills' security design — not from a product restriction. The skills
+      are open source, so a user can fork them and bypass it, at their own risk.
+    </blockquote>
+
+    <h2>The CLI runs on the host</h2>
+    <p>
+      The broker runs as a normal process on the user's machine, not inside an
+      opaque container the caller controls. That keeps the trust anchor — the
+      vault and its master password — under the user's direct control, and keeps
+      the audit log local and signed rather than shipped to a third party.
+    </p>
+
+    <h2>Threat model, in brief</h2>
+    <ul>
+      <li>
+        <strong>A compromised or curious caller</strong> (including a language
+        model) must not be able to read raw credentials. Mitigation: the broker
+        injects resolved secrets into the primitive and never returns them.
+      </li>
+      <li>
+        <strong>An operation outside policy</strong> must not run. Mitigation:
+        the signed allowlist gates every primitive call per profile.
+      </li>
+      <li>
+        <strong>Tampering with history</strong> must be detectable. Mitigation:
+        the HMAC-chained audit log.
+      </li>
+      <li>
+        <strong>Credential theft over a transport</strong>. Mitigation: the git
+        primitive authenticates over SSH keys rather than embedding tokens in a
+        remote URL.
+      </li>
+    </ul>
+  </article>
+</BaseLayout>

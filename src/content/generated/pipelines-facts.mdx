@@ -1,0 +1,14 @@
+{/* generated from help topics: txn, naming */}
+
+## The transaction (TXN) flow
+
+Changes are grouped into a transaction (TXN). The flow: create the TXN; for each phase, create entities carrying the txn id so the server forces them to 'draft' status; on success, activate the TXN so the drafts move to their terminal status; on failure, cancel the TXN so the drafts become 'cancelled'. Before starting, you check for an interrupted TXN to avoid duplicates.
+
+## Naming and identifiers
+
+Ids are stable and human-readable. PRJ-&lt;PROJECT&gt;, CMP-&lt;PROJECT&gt;-&lt;COMP&gt; and REL-&lt;PROJECT&gt;[-&lt;COMP&gt;]-&lt;X.Y.Z&gt; accept an explicit id. Every other type gets an auto id of the form &lt;TYPE&gt;-&lt;PROJECT&gt;[-&lt;COMP&gt;]-&lt;6HEX&gt;. Transaction ids look like TXN-&lt;PROJECT&gt;-&lt;YYYYMMDD&gt;-&lt;NNN&gt;. STD entities follow STD-&lt;PROJECT&gt;-&lt;COMP?&gt;-&lt;TOPIC&gt;.
+
+## Validation
+
+The engine validates entity ids against the naming rules, validates relation targets, and enforces transaction state. Typical conflicts: a duplicate TXN (resolved by checking for an interrupted TXN first), or operating on an already-cancelled or already-completed TXN (re-read the state).
+

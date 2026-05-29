@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PlatformFacts from '../content/generated/platform-facts.mdx';
+---
+
+<BaseLayout
+  title="Platform — Kvendra developer docs"
+  description="The Kvendra Platform engine: why a vector database, what an embedding is, and how semantic search ranks results by cosine similarity over PostgreSQL + pgvector."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Concepts</span>
+    <h1>The Platform engine</h1>
+    <p>
+      Platform is the open knowledge-base engine. It is the piece a developer
+      can run entirely on their own machine to get a complete, single-tenant KB:
+      a database, the engine, and the runtime, brought up together.
+    </p>
+
+    <PlatformFacts />
+
+    <h2>Why a vector database</h2>
+    <p>
+      A knowledge base is only useful if you can find the right entity when you
+      describe it in your own words rather than by its exact id. Keyword search
+      misses that: "how do I avoid leaking tokens" should surface the broker and
+      the allowlist even though those words may not appear verbatim. That is a
+      similarity problem, and similarity is best expressed as distance between
+      vectors — hence a vector database.
+    </p>
+    <p>
+      Kvendra uses PostgreSQL with the <code>pgvector</code> extension, so the
+      same database holds both the relational entity data and the vector index.
+      One store, one transaction boundary, no separate search service to keep in
+      sync.
+    </p>
+
+    <h2>What an embedding is</h2>
+    <p>
+      An embedding is a fixed-length list of numbers — a vector — that captures
+      the meaning of a piece of text. Texts that mean similar things map to
+      vectors that point in similar directions. Kvendra's embeddings are 1024
+      numbers long and are L2-normalized, meaning every vector is scaled to unit
+      length so that only its direction carries meaning.
+    </p>
+    <p>
+      The vector shape is wire-stable under a fixed alias, so the engine can
+      swap the underlying model without breaking stored vectors or downstream
+      consumers.
+    </p>
+
+    <h2>Search by cosine similarity</h2>
+    <p>
+      To find the entities most relevant to a query, the engine embeds the query
+      into the same 1024-dimension space and ranks stored entities by the cosine
+      of the angle between their vector and the query's. Because the vectors are
+      unit-length, cosine similarity reduces to a dot product: fast, and directly
+      supported by the vector index.
+    </p>
+    <pre><code>-- Conceptually: rank entities by closeness to a query embedding.
+-- (<=> is pgvector's cosine-distance operator; smaller = closer.)
+SELECT entity_id, title
+FROM entity
+ORDER BY embedding <=> :query_embedding
+LIMIT 10;</code></pre>
+  </article>
+</BaseLayout>

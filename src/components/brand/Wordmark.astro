@@ -1,0 +1,55 @@
+---
+/**
+ * Wordmark — "kvendra" lowercase + phos dot.
+ * Copied from kvendra-web (REL-KVD-WEB-0.6.x).
+ *
+ * Props: size (cap-height px, default 64), color (default --paper),
+ *        accent (dot color, default --phos).
+ */
+interface Props {
+  size?: number;
+  color?: string;
+  accent?: string;
+  class?: string;
+}
+
+const {
+  size = 64,
+  color = 'var(--paper)',
+  accent = 'var(--phos)',
+  class: className,
+} = Astro.props;
+
+const gap = size * 0.18;
+const dotSize = size * 0.12;
+const dotMargin = size * 0.06;
+---
+
+<span
+  class={`kvd-wordmark ${className ?? ''}`}
+  style={`--wm-color:${color}; --wm-accent:${accent}; --wm-size:${size}px; --wm-gap:${gap}px; --wm-dot:${dotSize}px; --wm-dot-mb:${dotMargin}px;`}
+>
+  <span class="kvd-wordmark__text">kvendra</span>
+  <span class="kvd-wordmark__dot" aria-hidden="true"></span>
+</span>
+
+<style>
+  .kvd-wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--wm-gap);
+    font-family: var(--display);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    font-size: var(--wm-size);
+    line-height: 1;
+    color: var(--wm-color);
+  }
+  .kvd-wordmark__dot {
+    display: inline-block;
+    width: var(--wm-dot);
+    height: var(--wm-dot);
+    background: var(--wm-accent);
+    margin-bottom: var(--wm-dot-mb);
+  }
+</style>

@@ -1,0 +1,108 @@
+---
+/**
+ * ThemeToggle — sun/moon button. Copied from kvendra-web (REL-KVD-WEB-0.6.x).
+ * Flips [data-theme] on <html> and persists to localStorage.kvendra-theme.
+ */
+---
+<button
+  type="button"
+  class="kvd-theme-toggle"
+  data-theme-toggle
+  aria-label="Toggle light or dark theme"
+  title="Toggle theme"
+>
+  <svg
+    class="icon--sun"
+    viewBox="0 0 24 24"
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    stroke-linecap="square"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="4" />
+    <line x1="12" y1="2" x2="12" y2="5" />
+    <line x1="12" y1="19" x2="12" y2="22" />
+    <line x1="2" y1="12" x2="5" y2="12" />
+    <line x1="19" y1="12" x2="22" y2="12" />
+    <line x1="4.5" y1="4.5" x2="6.5" y2="6.5" />
+    <line x1="17.5" y1="17.5" x2="19.5" y2="19.5" />
+    <line x1="4.5" y1="19.5" x2="6.5" y2="17.5" />
+    <line x1="17.5" y1="6.5" x2="19.5" y2="4.5" />
+  </svg>
+  <svg
+    class="icon--moon"
+    viewBox="0 0 24 24"
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    stroke-linecap="square"
+    aria-hidden="true"
+  >
+    <path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.5 6.5 0 0 0 20 14.5 Z" />
+  </svg>
+</button>
+
+<script>
+  (function () {
+    const btn = document.querySelector('[data-theme-toggle]');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      const next = cur === 'light' ? 'dark' : 'light';
+      if (next === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+      try {
+        localStorage.setItem('kvendra-theme', next);
+      } catch (e) {
+        /* persist may fail in private mode — toggle still works for the session */
+      }
+    });
+  })();
+</script>
+
+<style>
+  .kvd-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid var(--line-soft);
+    background: transparent;
+    color: var(--fog);
+    cursor: pointer;
+    transition: color 0.15s linear, border-color 0.15s linear,
+      background-color 0.15s linear;
+  }
+  .kvd-theme-toggle:hover,
+  .kvd-theme-toggle:focus-visible {
+    color: var(--phos);
+    border-color: var(--phos);
+  }
+  .kvd-theme-toggle svg {
+    display: block;
+    width: 14px;
+    height: 14px;
+  }
+  .kvd-theme-toggle .icon--moon {
+    display: none;
+  }
+  .kvd-theme-toggle .icon--sun {
+    display: block;
+  }
+  [data-theme='light'] .kvd-theme-toggle .icon--sun {
+    display: none;
+  }
+  [data-theme='light'] .kvd-theme-toggle .icon--moon {
+    display: block;
+  }
+</style>

@@ -1,0 +1,43 @@
+---
+/**
+ * KvendraMark — geometric K on a 24x24 grid.
+ * Copied from kvendra-web (REL-KVD-WEB-0.6.x). Locked geometry (UX-KVD-006).
+ *
+ * Props: size (default 120), color (default --paper), accent (default --phos),
+ *        title (optional accessible label; if absent the SVG is decorative).
+ */
+interface Props {
+  size?: number;
+  color?: string;
+  accent?: string;
+  title?: string;
+  class?: string;
+}
+
+const {
+  size = 120,
+  color = 'var(--paper)',
+  accent = 'var(--phos)',
+  title,
+  class: className,
+} = Astro.props;
+
+const ariaProps = title
+  ? { 'aria-label': title, role: 'img' }
+  : { 'aria-hidden': 'true', focusable: 'false' };
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  xmlns="http://www.w3.org/2000/svg"
+  class={className}
+  style="display:block;"
+  {...ariaProps}
+>
+  {title && <title>{title}</title>}
+  <polygon points="4,21 4,12 13,3 15,3 6,12 6,21" fill={color} />
+  <polygon points="4,3 6,3 6,8.5 4,10.5" fill={color} />
+  <polygon points="14.584,20.672 6.685,13.307 7.913,11.990 17.128,20.584" fill={accent} />
+</svg>

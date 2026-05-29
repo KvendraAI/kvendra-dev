@@ -1,0 +1,124 @@
+/* =============================================================================
+ * Kvendra Brand Tokens — copied from kvendra-web (REL-KVD-WEB-0.6.x).
+ *
+ * Claude Design palette (ink / paper / phos / line / accent). Dark default;
+ * [data-theme="light"] flips paper<->ink. Legacy semantic aliases
+ * (--fg/--bg/--bg-elev/--bg-sunk/--line-soft) preserved.
+ * =============================================================================
+ */
+:root {
+  /* Neutrals */
+  --ink: #0A0B0D;
+  --ink-2: #0E1014;
+  --graphite: #1C1E22;
+  --stone: #2A2D33;
+  --fog: #8A8E97;
+  --paper: #F2F0EB;
+  --paper-2: #E8E5DD;
+
+  /* Lines (separators / borders) */
+  --line: rgba(255, 255, 255, 0.10);
+  --line-2: rgba(255, 255, 255, 0.06);
+  --line-dark: rgba(10, 11, 13, 0.14);
+
+  /* Accent — phosphor. Use <=5% of canvas. */
+  --phos: #A8FF38;
+  --phos-dim: #7DC42A;
+  --warn: #FF6B3B;
+  --phos-readable: #3F7A12;
+
+  /* Higher-contrast secondary text on light backgrounds (a11y AA) */
+  --ink-soft: #3A3D44;
+  --fog-onlight: #5A5E66;
+
+  /* Type families */
+  --display: 'Space Grotesk', system-ui, sans-serif;
+  --body: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif: 'Newsreader', Georgia, serif;
+
+  /* Type scale */
+  --fs-d1: clamp(64px, 9vw, 128px);
+  --fs-d2: clamp(40px, 5vw, 64px);
+  --fs-h1: 40px;
+  --fs-h2: 28px;
+  --fs-body: 18px;
+  --fs-sm: 14px;
+  --fs-xs: 12px;
+
+  /* Letter spacing */
+  --ls-display: -0.05em;
+  --ls-tight: -0.04em;
+  --ls-mono: 0.04em;
+  --ls-tick: 0.18em;
+
+  /* Motion */
+  --dur-instant: 0ms;
+  --dur-mecanico: 120ms;
+  --dur-discreto: 200ms;
+  --dur-latido: 1000ms;
+  --ease-discreto: cubic-bezier(0.2, 0, 0, 1);
+  --ease-mecanico: linear;
+
+  /* Spacing scale (8px base) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 80px;
+
+  /* Layout */
+  --maxw: 1440px;
+  --gutter: 48px;
+  --container-max: 1280px;
+  --container-narrow: 960px;
+  --container-medium: 1280px;
+  --container-wide: 1440px;
+  --content-max: 1280px;
+
+  /* Semantic surface tokens — theme-aware. */
+  --bg: var(--ink);
+  --fg: var(--paper);
+  --bg-elev: var(--graphite);
+  --bg-sunk: var(--ink-2);
+  --line-soft: var(--line);
+
+  /* Diagram surfaces */
+  --diagram-bg: var(--bg-elev);
+  --diagram-fg: var(--fg);
+  --diagram-stroke: var(--fg);
+
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --ink: #F2F0EB;
+  --ink-2: #E8E5DD;
+  --graphite: #FFFFFF;
+  --stone: #D8D5CE;
+  --fog: #5A5E66;
+  --paper: #0A0B0D;
+  --line: rgba(10, 11, 13, 0.12);
+  --line-2: rgba(10, 11, 13, 0.06);
+  /* Darker phos so small-text contrast hits AA 4.5:1 on light surfaces. */
+  --phos: #2F5C0E;
+  --phos-dim: #A8FF38;
+  --phos-readable: #2F5C0E;
+  --warn: #C24A1F;
+
+  --bg: var(--ink);
+  --fg: var(--paper);
+  --bg-elev: var(--graphite);
+  --bg-sunk: var(--ink-2);
+  --line-soft: var(--line);
+
+  --diagram-bg: var(--ink);
+  --diagram-fg: var(--paper);
+  --diagram-stroke: var(--paper);
+
+  color-scheme: light;
+}

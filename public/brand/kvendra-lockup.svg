@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copied from kvendra-web (REL-KVD-WEB-0.6.x). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" width="480" height="96" role="img" aria-label="Kvendra lockup">
+  <title>Kvendra</title>
+  <g transform="translate(0 4) scale(1.6667)"><polygon points="4,21 4,12 13,3 15,3 6,12 6,21" fill="#F2F0EB"></polygon><polygon points="4,3 6,3 6,8.5 4,10.5" fill="#F2F0EB"></polygon><polygon points="14.584,20.672 6.685,13.307 7.913,11.990 17.128,20.584" fill="#A8FF38"></polygon></g>
+  <text x="56" y="34" fill="#F2F0EB" font-family="&#39;Space Grotesk&#39;, system-ui, sans-serif" font-size="32" font-weight="600" letter-spacing="-1.4">kvendra</text>
+  <rect x="216" y="28" width="6" height="6" fill="#A8FF38"></rect>
+</svg>

@@ -1,0 +1,25 @@
+{
+  "name": "kvendra-dev",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "kvendra.dev — open-core developer portal for Kvendra. Static Astro site generated from the Kvendra KB (dogfooding). MIT (code) + CC-BY-4.0 (content).",
+  "license": "MIT",
+  "scripts": {
+    "kb:fetch": "node scripts/kb-fetch.mjs",
+    "kb:transform": "node scripts/kb-to-mdx.mjs",
+    "lint:content": "node scripts/content-linter/index.mjs",
+    "test:linter": "node scripts/content-linter/test.mjs",
+    "prebuild": "npm run lint:content",
+    "build": "npm run kb:fetch && npm run kb:transform && npm run lint:content && astro build",
+    "dev": "astro dev",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^4.16.18",
+    "@astrojs/mdx": "^3.1.9",
+    "@fontsource/space-grotesk": "^5.1.1",
+    "@fontsource/jetbrains-mono": "^5.1.2",
+    "@fontsource/newsreader": "^5.1.1"
+  }
+}

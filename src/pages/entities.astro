@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EntityTypes from '../content/generated/entity-types.mdx';
+
+// The per-type reference. Authored from the open-core entity model; the
+// overview paragraph above the table is generated from the KB help topic.
+const types = [
+  { id: 'PRJ', name: 'Project', use: 'The root of a knowledge base: one project per product or codebase. Everything else hangs off it.' },
+  { id: 'CMP', name: 'Component', use: 'A distinct part of the project — a binary, a service, an engine. Carries its stack, repo and status.' },
+  { id: 'IF', name: 'Interface', use: 'A contract between components: a wire schema, an API, a manifest. The source of truth for field names.' },
+  { id: 'REQ', name: 'Requirement', use: 'A formal requirement with acceptance criteria. The "what" a change must satisfy.' },
+  { id: 'TEST', name: 'Test', use: 'A recorded test case: preconditions, process, validations and evidence.' },
+  { id: 'REG', name: 'Regression suite', use: 'A named suite of checks run repeatedly to guard against regressions.' },
+  { id: 'ISSUE', name: 'Issue', use: 'A work item: a bug, a task, an incident. Lands on status "open" when activated.' },
+  { id: 'REL', name: 'Release', use: 'A shipped version, with an automatic changelog and links to what it contains.' },
+  { id: 'SLA', name: 'Service-level objective', use: 'A target the system is held to — latency, availability, error budget.' },
+  { id: 'ROAD', name: 'Roadmap', use: 'A multi-step plan or initiative that future work derives from.' },
+  { id: 'GLO', name: 'Glossary term', use: 'A canonical definition, so naming stays consistent across the project.' },
+  { id: 'STD', name: 'Standard / playbook', use: 'A reusable recipe or policy. Skills read these at runtime instead of hardcoding steps.' },
+  { id: 'PAT', name: 'Pattern / lesson', use: 'A distilled lesson learned, captured so it is not relearned the hard way.' },
+  { id: 'ADR', name: 'Architecture decision record', use: 'A decision, its context and consequences. Lands on status "accepted" when activated.' },
+  { id: 'RUN', name: 'Run', use: 'A recorded execution — of a suite, a job, a pipeline. Lands on status "recorded".' },
+  { id: 'UX', name: 'UX artifact', use: 'A design or user-experience artifact tied to the work.' },
+  { id: 'DOC', name: 'Documentation', use: 'A documentation entry — like the architecture overview this portal renders.' },
+  { id: 'ENV', name: 'Environment', use: 'A described environment. Lands on status "recorded" when activated.' },
+  { id: 'COST', name: 'Cost', use: 'A cost record attached to a component or initiative.' },
+  { id: 'CFG', name: 'Config', use: 'A configuration entry — the twentieth type alongside the nineteen first-class ones.' },
+];
+---
+
+<BaseLayout
+  title="Entities — Kvendra developer docs"
+  description="The Kvendra entity model: each typed entity, what it is for, and how transactions and relations tie them together."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Reference</span>
+    <h1>The entity model</h1>
+    <p>
+      Kvendra models everything you know about a project as <em>typed
+      entities</em>. Instead of free-form documents, knowledge is captured as
+      structured records with stable ids, typed relations and an automatic
+      changelog. That structure is what makes the KB searchable, auditable, and
+      safe for an agent to read and write.
+    </p>
+
+    <EntityTypes />
+
+    <h2>Every type, one by one</h2>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Name</th><th>What it is for</th></tr>
+      </thead>
+      <tbody>
+        {
+          types.map((t) => (
+            <tr>
+              <td><code>{t.id}</code></td>
+              <td>{t.name}</td>
+              <td>{t.use}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    <h2>Relations and history</h2>
+    <p>
+      Entities are connected by typed relations — for example a release is
+      <code>part_of</code> a component, a decision <code>derives_from</code> a
+      requirement, a component <code>fulfills</code> a requirement. The engine
+      validates relation targets, and it keeps a full version history of every
+      entity automatically, so you can always answer "what changed, when, and
+      why".
+    </p>
+  </article>
+</BaseLayout>

@@ -1,0 +1,52 @@
+---
+/**
+ * Icon — 24x24 stroke-only SVG. Copied from kvendra-web (REL-KVD-WEB-0.6.x).
+ * Use only in functional UI, never decoratively (K-009).
+ */
+import { ICONS, type IconName } from './icons';
+
+interface Props {
+  name: IconName;
+  size?: number;
+  stroke?: number;
+  color?: string;
+  title?: string;
+  class?: string;
+}
+
+const {
+  name,
+  size = 24,
+  stroke = 1.5,
+  color = 'currentColor',
+  title,
+  class: className,
+} = Astro.props;
+
+const svgInner = ICONS[name];
+
+if (!svgInner) {
+  throw new Error(`Unknown icon name: ${name}`);
+}
+
+const ariaProps = title
+  ? { 'aria-label': title, role: 'img' }
+  : { 'aria-hidden': 'true', focusable: 'false' };
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke={color}
+  stroke-width={stroke}
+  stroke-linecap="square"
+  stroke-linejoin="miter"
+  xmlns="http://www.w3.org/2000/svg"
+  class={className}
+  {...ariaProps}
+>
+  {title && <title>{title}</title>}
+  <Fragment set:html={svgInner} />
+</svg>

@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PipelinesFacts from '../content/generated/pipelines-facts.mdx';
+---
+
+<BaseLayout
+  title="Pipelines — Kvendra developer docs"
+  description="How Kvendra groups changes into transactions (TXN), moves entities through draft, activate and cancel, and keeps a typed server-side changelog."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Concepts</span>
+    <h1>Pipelines and transactions</h1>
+    <p>
+      Knowledge changes in batches: a single piece of work usually creates and
+      updates several related entities at once. Kvendra groups those changes
+      into a <em>transaction</em> (TXN) so they land together or not at all, and
+      records every change in a typed, server-side changelog.
+    </p>
+
+    <PipelinesFacts />
+
+    <h2>The lifecycle, step by step</h2>
+    <pre><code>1. txn_create        -> open a transaction, scoped to a project (and optionally a component)
+2. entity_create     -> create entities carrying the txn id; the server forces them to "draft"
+   entity_update      -> further edits stay inside the same transaction
+3a. txn_activate      -> success: every draft moves to its terminal status
+3b. txn_cancel        -> failure: every draft becomes "cancelled"</code></pre>
+    <p>
+      Drafts are invisible to normal reads until the transaction activates, so a
+      half-finished pipeline never pollutes the knowledge base. The terminal
+      status depends on the type: most land on <code>active</code>, an issue on
+      <code>open</code>, a decision on <code>accepted</code>, a run on
+      <code>recorded</code>.
+    </p>
+
+    <h2>The typed changelog</h2>
+    <p>
+      Every create and update is recorded by the engine itself — not by the
+      caller — as a versioned history entry with the author, the trigger (often
+      the transaction id), and a change summary. Because history is maintained
+      server-side, it cannot be skipped or rewritten by a client, which is what
+      makes the audit trail trustworthy.
+    </p>
+
+    <h2>Resilience</h2>
+    <p>
+      Before starting, a pipeline checks for an interrupted transaction so it
+      does not open a duplicate. Operating on a transaction that is already
+      cancelled or already completed is reported as a conflict, prompting the
+      caller to re-read the current state rather than guess.
+    </p>
+  </article>
+</BaseLayout>

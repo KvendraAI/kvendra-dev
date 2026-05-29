@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="SQL schemas — Kvendra developer docs"
+  description="Proposed relational schemas for the open Kvendra knowledge-base engine: entities, relations, history and the pgvector embedding index."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Reference</span>
+    <h1>Proposed SQL schemas</h1>
+    <p>
+      The open Platform engine stores its knowledge base in PostgreSQL with the
+      <code>pgvector</code> extension. The schemas below are a proposed,
+      illustrative shape of that store — the entity table, its typed relations,
+      the server-side history, and the transaction bookkeeping. They are meant to
+      explain the model, not to pin an exact migration.
+    </p>
+
+    <h2>Extensions</h2>
+    <pre><code>CREATE EXTENSION IF NOT EXISTS vector;     -- pgvector
+CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- gen_random_uuid()</code></pre>
+
+    <h2>Entities</h2>
+    <p>
+      One row per entity. The id is the stable, human-readable identifier; the
+      embedding is a 1024-dimension vector for semantic search; tags and metadata
+      are flexible JSON/array columns.
+    </p>
+    <pre><code>CREATE TABLE entity (
+  entity_id    text PRIMARY KEY,                 -- e.g. CMP-KVD-CLI
+  entity_type  text NOT NULL,                    -- PRJ, CMP, IF, REQ, ...
+  project_id   text NOT NULL,
+  component_id text,
+  title        text NOT NULL,
+  content      text NOT NULL DEFAULT '',
+  status       text NOT NULL DEFAULT 'active',
+  archived     boolean NOT NULL DEFAULT false,
+  tags         text[] NOT NULL DEFAULT '{}',
+  metadata     jsonb  NOT NULL DEFAULT '{}',
+  embedding    vector(1024),                     -- L2-normalized
+  version      integer NOT NULL DEFAULT 1,
+  txn_id       text,                             -- non-null while draft
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  updated_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- Approximate-nearest-neighbour index for cosine similarity.
+CREATE INDEX entity_embedding_idx
+  ON entity USING hnsw (embedding vector_cosine_ops);
+
+CREATE INDEX entity_project_idx ON entity (project_id, entity_type);
+CREATE INDEX entity_tags_idx    ON entity USING gin (tags);</code></pre>
+
+    <h2>Relations</h2>
+    <p>
+      Typed, directed edges between entities — <code>part_of</code>,
+      <code>fulfills</code>, <code>derives_from</code>, <code>affects</code>,
+      and so on. Relation targets are validated against the entity table.
+    </p>
+    <pre><code>CREATE TABLE relation (
+  id            bigserial PRIMARY KEY,
+  source_id     text NOT NULL REFERENCES entity (entity_id),
+  target_id     text NOT NULL REFERENCES entity (entity_id),
+  relation_type text NOT NULL,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (source_id, target_id, relation_type)
+);
+
+CREATE INDEX relation_source_idx ON relation (source_id);
+CREATE INDEX relation_target_idx ON relation (target_id);</code></pre>
+
+    <h2>History (typed changelog)</h2>
+    <p>
+      Append-only. The engine writes one row per create/update, capturing who
+      changed what and why. Clients never write here directly.
+    </p>
+    <pre><code>CREATE TABLE entity_history (
+  id             bigserial PRIMARY KEY,
+  entity_id      text NOT NULL REFERENCES entity (entity_id),
+  author         text NOT NULL,
+  trigger        text,                  -- often the txn id, or 'direct'
+  change_summary text NOT NULL,
+  version_before integer,
+  version_after  integer,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX entity_history_entity_idx ON entity_history (entity_id, created_at);</code></pre>
+
+    <h2>Transactions</h2>
+    <p>
+      Bookkeeping for the draft/activate/cancel lifecycle. While a transaction is
+      open, the entities it created keep their <code>txn_id</code> and stay in
+      <code>draft</code>; activating it clears the id and promotes them.
+    </p>
+    <pre><code>CREATE TABLE txn (
+  txn_id       text PRIMARY KEY,        -- TXN-KVD-YYYYMMDD-NNN
+  project_id   text NOT NULL,
+  component_id text,
+  type         text NOT NULL,
+  status       text NOT NULL DEFAULT 'open',  -- open | completed | cancelled
+  trigger      text,
+  started_by   text,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  closed_at    timestamptz
+);</code></pre>
+  </article>
+</BaseLayout>

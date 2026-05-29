@@ -1,0 +1,24 @@
+{/* generated from CMP-KVD-SKILLS — do not edit by hand */}
+
+**Kvendra Skills** (Apache-2.0) is a Claude Code plugin (markdown prompts; no runtime code).
+
+The official Claude Code plugin that materializes the skills layer: the single set of skills for the project, distributed as a markdown plugin through a public marketplace. It is the join point that orchestrates the CLI and the KB.
+
+> Skills require the CLI by security design: every sensitive operation goes through the broker so the language model never sees raw tokens or keys. The user can fork the open-source skills to bypass this at their own risk.
+
+## Direction
+
+- A single set of skills for Claude Code (the parallel community track is deprecated).
+- English as the source language; user-facing output follows the language declared in the project config.
+- Thin, KB/STD-driven skills: tech-specific recipes live in KB STD entities, not hardcoded in the skill markdown.
+
+## The skill catalogue
+
+- **Pipelines**: new-feature, bug, release-manager, incident-manager, regression.
+- **Subagents**: planner, implementer, validator, tester, analyzer, updater, interface-validator.
+- **Documentation**: doc-validator.
+- **Setup & meta**: setup, env-check, consultancy, to-do, to-do-summary, requirements-analyst, changelog, user-help.
+- **Deploy**: deploy.
+
+LLM target: Any LLM that Claude Code supports.
+
