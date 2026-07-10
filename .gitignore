@@ -16,3 +16,6 @@ src/content/.kb-cache/
 # OS / editor
 .DS_Store
 *.log
+
+# Agent boot-ROM — internal, never publish
+CLAUDE.md
