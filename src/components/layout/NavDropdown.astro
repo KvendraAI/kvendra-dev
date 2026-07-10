@@ -1,0 +1,154 @@
+---
+/**
+ * NavDropdown — nav dropdown built on <details>/<summary>, no FOUC.
+ *
+ * Keyboard-accessible: <summary> is focusable and toggles on Enter/Space
+ * natively; links inside are tabbable once open. Closing on outside click,
+ * Escape, or link selection is handled globally by /scripts/nav.js (a tiny
+ * vanilla script loaded once in BaseLayout) — there is deliberately NO
+ * full-screen backdrop, which used to swallow the first click on any other
+ * nav item while a dropdown was open.
+ *
+ * Props:
+ *   label    — the trigger text (a small ▾ caret is appended)
+ *   items    — array of { href, label } links
+ *   disabled — render the label as a non-interactive placeholder
+ */
+interface Item {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  label: string;
+  items?: Item[];
+  disabled?: boolean;
+}
+
+const { label, items = [], disabled = false } = Astro.props;
+---
+
+{
+  disabled ? (
+    <span class="kvd-navdd kvd-navdd--disabled" aria-disabled="true">
+      {label} <span class="kvd-navdd__caret" aria-hidden="true">▾</span>
+    </span>
+  ) : (
+    <details class="kvd-navdd" name="kvd-nav">
+      <summary>
+        {label} <span class="kvd-navdd__caret" aria-hidden="true">▾</span>
+      </summary>
+      <div class="kvd-navdd__panel" role="menu">
+        {items.map((item) => (
+          <a href={item.href} role="menuitem">
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </details>
+  )
+}
+
+<style>
+  .kvd-navdd {
+    position: relative;
+    font-size: var(--fs-sm);
+    letter-spacing: var(--ls-tight);
+  }
+
+  /* Trigger ---------------------------------------------------------------- */
+  .kvd-navdd > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    list-style: none;
+    cursor: pointer;
+    color: var(--fog);
+    transition: color var(--dur-mecanico) var(--ease-mecanico);
+    user-select: none;
+  }
+
+  /* Hide the native disclosure triangle across engines. */
+  .kvd-navdd > summary::-webkit-details-marker {
+    display: none;
+  }
+  .kvd-navdd > summary::marker {
+    content: '';
+  }
+
+  .kvd-navdd > summary:hover,
+  .kvd-navdd[open] > summary {
+    color: var(--fg);
+  }
+
+  .kvd-navdd > summary:focus-visible {
+    outline: 2px solid var(--phos);
+    outline-offset: 2px;
+  }
+
+  .kvd-navdd__caret {
+    font-size: 0.7em;
+    line-height: 1;
+    transition: transform var(--dur-mecanico) var(--ease-mecanico);
+  }
+  .kvd-navdd[open] .kvd-navdd__caret {
+    transform: rotate(180deg);
+  }
+
+  /* Disabled placeholder --------------------------------------------------- */
+  .kvd-navdd--disabled {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    color: var(--fog);
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  /* Panel ------------------------------------------------------------------ */
+  .kvd-navdd__panel {
+    position: absolute;
+    top: calc(100% + var(--sp-3));
+    left: 0;
+    z-index: 20;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-elev);
+    border: 1px solid var(--line-soft);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .kvd-navdd__panel a {
+    display: block;
+    padding: var(--sp-3) var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--fog);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--line-2);
+    transition: color var(--dur-mecanico) var(--ease-mecanico),
+      background-color var(--dur-mecanico) var(--ease-mecanico);
+  }
+  .kvd-navdd__panel a:last-child {
+    border-bottom: none;
+  }
+  .kvd-navdd__panel a:hover,
+  .kvd-navdd__panel a:focus-visible {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--phos) 10%, transparent);
+    outline: none;
+  }
+
+  /* On narrow viewports, open inline (full-width) rather than as an overlay. */
+  @media (max-width: 640px) {
+    .kvd-navdd__panel {
+      position: static;
+      min-width: 0;
+      box-shadow: none;
+      border: none;
+      border-left: 2px solid var(--line-soft);
+      margin-top: var(--sp-2);
+      margin-left: var(--sp-2);
+    }
+  }
+</style>

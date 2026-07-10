@@ -1,76 +1,165 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import OutcomeCards from '../components/landing/OutcomeCards.astro';
+import WhyTiles from '../components/landing/WhyTiles.astro';
 
-const sections = [
-  { href: '/cli/', title: 'CLI', blurb: 'The Rust binary: a zero-knowledge vault and an MCP capability broker with seven open-core primitives.' },
-  { href: '/security/', title: 'Security model', blurb: 'Why the vault is zero-knowledge, how the broker keeps secrets away from the model, and the threat model.' },
-  { href: '/platform/', title: 'Platform', blurb: 'The self-hosted KB engine: PostgreSQL + pgvector, embeddings, and cosine semantic search.' },
-  { href: '/entities/', title: 'Entities', blurb: 'The typed knowledge model: what each entity type is for and how they relate.' },
-  { href: '/pipelines/', title: 'Pipelines', blurb: 'Transactions, draft/activate/cancel, and the typed server-side changelog.' },
-  { href: '/sql/', title: 'SQL', blurb: 'Proposed relational schemas for the open knowledge-base engine.' },
-];
+const githubUrl = 'https://github.com/KvendraAI';
 ---
 
 <BaseLayout
-  title="Kvendra — developer docs"
-  description="Open-core developer documentation for Kvendra: the CLI, the Platform engine and the Skills plugin. Architecture, security, embeddings, entities, pipelines and SQL — all generated from the Kvendra knowledge base."
+  title="Kvendra — stop your AI agent from re-deciding your project"
+  description="Your AI coding agent loses the thread of your project and re-decides things. Kvendra gives it a structured, queryable knowledge base — plus traceable pipelines — so it stops re-deciding and you stay in control. Self-hostable, MCP-native, open core."
 >
   <section class="kvd-hero">
     <span class="kvd-kicker">kvendra.dev · open core</span>
-    <h1>Build on Kvendra.</h1>
-    <p>
-      Deep, open-source developer documentation for the three open pieces of
-      Kvendra — the CLI, the Platform engine and the Skills plugin. Every page
-      on this site is generated from the Kvendra knowledge base itself: the
-      product documenting itself.
+    <h1>Stop your AI agent from re-deciding your project.</h1>
+    <p class="kvd-hero__lead">
+      Your AI coding agent loses the thread of your project and re-decides
+      things you already settled. Kvendra gives it a structured, queryable
+      knowledge base of your project — plus traceable pipelines — so it stops
+      re-deciding and you stay in control.
     </p>
-  </section>
-
-  <section class="kvd-prose">
-    <h2>The three open pieces</h2>
-    <p>
-      Kvendra is three independent open-core components plus the skills layer
-      that joins them. Each resolves a different problem and can be used on its
-      own:
+    <p class="kvd-hero__example">
+      Ask <em>“how do we avoid leaking tokens”</em> and it surfaces the relevant
+      decision even if those exact words never appear — because Kvendra finds the
+      right thing by meaning, not by keyword.
     </p>
-    <ul>
-      <li>
-        <strong>Kvendra CLI</strong> (Apache-2.0) — a local, zero-knowledge
-        vault and an MCP capability broker. It runs sensitive operations on your
-        behalf so a language model never touches your tokens.
-      </li>
-      <li>
-        <strong>Kvendra Platform</strong> (AGPL-3.0) — the knowledge-base engine
-        you self-host with <code>docker-compose</code> to get your own complete,
-        single-tenant KB.
-      </li>
-      <li>
-        <strong>Kvendra Skills</strong> (Apache-2.0) — the Claude Code plugin
-        that orchestrates the CLI and the KB into end-to-end workflows.
-      </li>
-    </ul>
-  </section>
-
-  <section>
-    <div class="kvd-cards">
-      {
-        sections.map((s) => (
-          <a class="kvd-card" href={s.href}>
-            <h3>{s.title}</h3>
-            <p>{s.blurb}</p>
-          </a>
-        ))
-      }
+    <div class="kvd-hero__ctas">
+      <a class="kvd-btn kvd-btn--primary" href="/docs/getting-started/"
+        >Get Started</a
+      >
+      <a class="kvd-btn" href="/install-with-ai/">Install with your AI</a>
+      <a class="kvd-btn" href={githubUrl}>View on GitHub</a>
     </div>
+    <p class="kvd-hero__first-ten">
+      Your first 10 minutes — clone, install the plugin, run the wizard:
+    </p>
+    <pre class="kvd-hero__install"><code>{`# terminal
+git clone https://github.com/KvendraAI/kvendra-reference-stack
+cd kvendra-reference-stack
+
+# in Claude Code
+/plugin marketplace add KvendraAI/kvendra-skills
+/plugin install kvendra-skills@kvendra-marketplace
+/setup self-hosted`}</code></pre>
+    <p class="kvd-hero__see-why">
+      <a href="/use-cases/">See what you actually get out of it →</a>
+    </p>
   </section>
 
-  <section class="kvd-prose" style="margin-top: var(--sp-8);">
-    <h2>Looking for the product overview?</h2>
-    <p>
-      This portal is the deep, technical reference. For a high-level overview of
-      what Kvendra is and who it is for, head to
-      <a href="https://kvendra.com">kvendra.com</a> — and come back here when you
-      want the details.
+  <section class="kvd-section">
+    <h2 class="kvd-section__title">How it's put together</h2>
+    <p class="kvd-section__intro">
+      Three open-core pieces: <strong>Platform</strong> is the required core —
+      the knowledge base. <strong>Skills</strong> are your day-to-day — pipelines
+      run as one-command workflows on top of it. The <strong>CLI</strong> is a
+      foundational security layer that is optional to get started; add it when
+      you want your agent to run real ops (a git push, a deploy) without seeing
+      your tokens.
     </p>
+    <OutcomeCards />
+  </section>
+
+  <section class="kvd-section">
+    <h2 class="kvd-section__title">Why Kvendra</h2>
+    <WhyTiles />
   </section>
 </BaseLayout>
+
+<style>
+  .kvd-hero__lead {
+    font-size: var(--fs-body);
+    color: var(--fg);
+    max-width: 60ch;
+  }
+  .kvd-hero__example {
+    color: var(--fog);
+    max-width: 60ch;
+    margin-top: var(--sp-3);
+  }
+  .kvd-hero__example em {
+    color: var(--fg);
+  }
+  .kvd-hero__first-ten {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--phos-readable);
+    margin-top: var(--sp-6);
+    margin-bottom: var(--sp-2);
+  }
+  .kvd-hero__see-why {
+    margin-top: var(--sp-4);
+    font-size: var(--fs-sm);
+  }
+  .kvd-section__intro {
+    color: var(--fog);
+    max-width: 68ch;
+    margin-bottom: var(--sp-5);
+  }
+
+  .kvd-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-top: var(--sp-6);
+  }
+
+  .kvd-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--sp-3) var(--sp-5);
+    font-family: var(--display);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    border: 1px solid var(--line-soft);
+    color: var(--fg);
+    transition: border-color var(--dur-mecanico) var(--ease-mecanico),
+      background-color var(--dur-mecanico) var(--ease-mecanico),
+      color var(--dur-mecanico) var(--ease-mecanico);
+  }
+  .kvd-btn:hover {
+    border-color: var(--phos);
+  }
+  .kvd-btn--primary {
+    border-color: var(--phos);
+    background: var(--phos);
+    color: var(--ink);
+  }
+  .kvd-btn--primary:hover {
+    background: var(--phos-dim);
+    border-color: var(--phos-dim);
+  }
+
+  .kvd-hero__install {
+    font-family: var(--mono);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    background: var(--bg-sunk);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--phos);
+    padding: var(--sp-4);
+    overflow-x: auto;
+    margin-top: var(--sp-2);
+    max-width: 100%;
+  }
+  .kvd-hero__install code {
+    font-family: var(--mono);
+    letter-spacing: var(--ls-mono);
+  }
+
+  .kvd-section {
+    margin-top: var(--sp-8);
+  }
+  .kvd-section__title {
+    font-family: var(--display);
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    margin-bottom: var(--sp-2);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--line-soft);
+  }
+</style>

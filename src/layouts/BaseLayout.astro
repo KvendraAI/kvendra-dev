@@ -19,6 +19,7 @@ import '../styles/reset.css';
 import '../styles/global.css';
 import Lockup from '../components/brand/Lockup.astro';
 import ThemeToggle from '../components/layout/ThemeToggle.astro';
+import NavDropdown from '../components/layout/NavDropdown.astro';
 
 interface Props {
   title?: string;
@@ -30,18 +31,22 @@ const {
   description = 'Open-core developer documentation for Kvendra: CLI, Platform and Skills. Architecture, security, embeddings, entities, pipelines and SQL.',
 } = Astro.props;
 
-const nav = [
-  { href: '/', label: 'Home' },
-  { href: '/cli/', label: 'CLI' },
-  { href: '/security/', label: 'Security' },
-  { href: '/platform/', label: 'Platform' },
-  { href: '/skills/', label: 'Skills' },
-  { href: '/entities/', label: 'Entities' },
-  { href: '/pipelines/', label: 'Pipelines' },
-  { href: '/sql/', label: 'SQL' },
+// Product menu — outcome-led entry points into the docs.
+const productItems = [
+  { href: '/docs/platform/', label: 'KB Engine' },
+  { href: '/docs/skills/', label: 'Skills for AI agents' },
+  { href: '/docs/cli/', label: 'CLI & Broker' },
+  { href: '/how-it-works/', label: 'How it fits together' },
+  { href: '/use-cases/', label: 'Use cases' },
+  { href: '/principles/', label: 'Principles' },
 ];
 
-const here = Astro.url.pathname;
+// Community menu — points at the public GitHub org for now.
+const communityItems = [
+  { href: 'https://github.com/KvendraAI', label: 'GitHub org' },
+];
+
+const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
 ---
 
 <!doctype html>
@@ -55,6 +60,8 @@ const here = Astro.url.pathname;
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? 'https://kvendra.dev')} />
     <!-- Anti-FOUC: sync, pre-paint, same-origin (CSP-safe). -->
     <script is:inline src="/scripts/theme-init.js"></script>
+    <!-- Nav dropdown close-behaviour: deferred, same-origin (CSP-safe). -->
+    <script is:inline defer src="/scripts/nav.js"></script>
   </head>
   <body>
     <div class="kvd-shell">
@@ -64,16 +71,13 @@ const here = Astro.url.pathname;
             <Lockup size={20} />
           </a>
           <nav class="kvd-nav" aria-label="Primary">
-            {
-              nav.map((item) => (
-                <a
-                  href={item.href}
-                  aria-current={here === item.href ? 'page' : undefined}
-                >
-                  {item.label}
-                </a>
-              ))
-            }
+            <NavDropdown label="Product" items={productItems} />
+            <a href="/docs/">Docs</a>
+            <NavDropdown label="Community" items={communityItems} />
+            <a class="kvd-nav__disabled" aria-disabled="true">Blog</a>
+            <a class="kvd-nav__github" href={githubUrl}>GitHub ★</a>
+            <a class="kvd-nav__ai" href="/install-with-ai/">Install with your AI</a>
+            <a class="kvd-nav__cta" href="/docs/getting-started/">Get Started</a>
             <ThemeToggle />
           </nav>
         </div>
@@ -91,6 +95,12 @@ const here = Astro.url.pathname;
             kvendra.dev — open-core developer docs. Generated from the Kvendra
             knowledge base.
           </span>
+          <nav class="kvd-footer__nav" aria-label="Footer">
+            <a href="/how-it-works/">How it works</a>
+            <a href="/use-cases/">Use cases</a>
+            <a href="/principles/">Principles</a>
+            <a href="/docs/getting-started/">Get Started</a>
+          </nav>
           <span>
             Code: MIT · Content:
             <a href="https://creativecommons.org/licenses/by/4.0/" rel="license"
@@ -102,5 +112,42 @@ const here = Astro.url.pathname;
         </div>
       </footer>
     </div>
+
+    <style>
+      /* New-nav item styles. Scoped to BaseLayout; the global .kvd-nav a base
+         (color/size/transition) still applies — these layer intent on top. */
+      .kvd-nav__github {
+        white-space: nowrap;
+      }
+
+      .kvd-nav__disabled {
+        opacity: 0.5;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      .kvd-nav__ai {
+        white-space: nowrap;
+      }
+
+      .kvd-footer__nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--sp-4);
+      }
+
+      .kvd-nav__cta {
+        padding: var(--sp-2) var(--sp-4);
+        border: 1px solid var(--phos);
+        color: var(--fg);
+        white-space: nowrap;
+        transition: background-color var(--dur-mecanico) var(--ease-mecanico),
+          color var(--dur-mecanico) var(--ease-mecanico);
+      }
+      .kvd-nav__cta:hover {
+        background: var(--phos);
+        color: var(--ink);
+      }
+    </style>
   </body>
 </html>

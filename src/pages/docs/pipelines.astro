@@ -1,0 +1,146 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import PipelinesFacts from '../../content/generated/pipelines-facts.mdx';
+---
+
+<DocsLayout
+  title="Pipelines — Kvendra developer docs"
+  description="How Kvendra groups changes into transactions (TXN), moves entities through draft, activate and cancel, and keeps a typed server-side changelog."
+>
+    <span class="kvd-kicker">Concepts</span>
+    <h1>Pipelines and transactions</h1>
+    <p>
+      Knowledge changes in batches: a single piece of work usually creates and
+      updates several related entities at once. Kvendra groups those changes
+      into a <em>transaction</em> (TXN) so they land together or not at all, and
+      records every change in a typed, server-side changelog.
+    </p>
+
+    <PipelinesFacts />
+
+    <h2>The lifecycle, step by step</h2>
+    <pre><code>1. txn_create        -> open a transaction, scoped to a project (and optionally a component)
+2. entity_create     -> create entities carrying the txn id; the server forces them to "draft"
+   entity_update      -> further edits stay inside the same transaction
+3a. txn_activate      -> success: every draft moves to its terminal status
+3b. txn_cancel        -> failure: every draft becomes "cancelled"</code></pre>
+    <p>
+      Drafts are invisible to normal reads until the transaction activates, so a
+      half-finished pipeline never pollutes the knowledge base. The terminal
+      status depends on the type: most land on <code>active</code>, an issue on
+      <code>open</code>, a decision on <code>accepted</code>, a run or an
+      environment on <code>recorded</code>.
+    </p>
+
+    <h2>Why a transaction at all</h2>
+    <p>
+      A single piece of work — planning a feature, fixing a bug, cutting a
+      release — rarely touches one entity. It creates a requirement, drafts the
+      tests, updates the component, links them together. The transaction makes
+      that an <strong>atomic, multi-entity change-set</strong>: every draft in
+      the transaction commits on <code>txn_activate</code>, or none of them do
+      on <code>txn_cancel</code>. There is no intermediate state where half the
+      entities are real and half are not.
+    </p>
+    <p>
+      That is also where the resilience comes from. If a pipeline fails partway
+      through — an agent stops, a step errors — the work so far is sitting in
+      <code>draft</code>, quarantined from every normal read. Nothing leaks into
+      the knowledge base until the transaction is deliberately activated, so a
+      crashed pipeline leaves the KB exactly as it was, not subtly corrupted.
+    </p>
+
+    <h2>A walkthrough: from idea to release</h2>
+    <p>
+      The lifecycle is easiest to see on a real arc of work. Suppose a developer
+      asks their agent to plan a new export feature for the knowledge base.
+    </p>
+    <ol>
+      <li>
+        <strong>Plan.</strong> The developer says "let's plan a clean JSON
+        export". The agent reaches for a planning skill, which opens a
+        <strong>transaction</strong> and drafts a <strong>ROADMAP</strong>
+        (a <code>ROAD</code> entity) describing the goal and the slices it breaks
+        into. Activating that transaction promotes the roadmap from
+        <code>draft</code> to <code>active</code>: now it is real, and the rest
+        of the work has something to hang off.
+      </li>
+      <li>
+        <strong>Specify.</strong> As the first slice starts, another transaction
+        drafts a requirement — a <strong>REQ</strong> entity — capturing exactly
+        what "clean export" means, linked back to the roadmap with a typed
+        <code>part_of</code> relation. It lands <code>active</code> on activation.
+      </li>
+      <li>
+        <strong>Build, and hit a snag.</strong> Mid-implementation the agent finds
+        that nested entities double-encode. It opens a transaction and drafts an
+        <strong>ISSUE</strong> (which lands in status <code>open</code>), related
+        to the REQ it <code>affects</code>. The fix and the issue travel in the
+        same change-set, so the record of the problem and its resolution stay
+        together.
+      </li>
+      <li>
+        <strong>Prove it.</strong> Before calling the slice done, a tester skill
+        records one or more <strong>TEST</strong> entities — preconditions,
+        steps, expected output, evidence — linked to the REQ they
+        <code>verify</code>. Now the requirement is not just written down, it is
+        demonstrably met.
+      </li>
+      <li>
+        <strong>Release.</strong> Finally a release skill cuts a
+        <strong>REL</strong> entity that groups the slice's changes. Because every
+        REQ, ISSUE and TEST is connected in the graph and recorded in history,
+        the release ships with an <strong>automatic changelog</strong> — assembled
+        from what actually changed, not hand-written after the fact.
+      </li>
+    </ol>
+    <p>
+      Two properties make this trustworthy. Every multi-entity step is
+      <strong>atomic</strong>: the whole step activates together or, if anything
+      goes wrong, the transaction is cancelled and none of its drafts ever
+      existed for a normal reader. And the combination of the typed
+      <a href="/docs/entities/">relation graph</a> and the server-side history
+      leaves a <strong>complete trace</strong> of how the roadmap became a
+      release — which requirement drove which change, which issue it fixed, which
+      test proved it — without anyone having to remember to write it down.
+    </p>
+
+    <h2>Concurrent writers: optimistic locking</h2>
+    <p>
+      When two writers touch the same entity at once, Kvendra does not silently
+      take the last write. Each update carries the <code>expected_version</code>
+      it was based on — a compare-and-set check. If the entity has moved on
+      since, the write is rejected as a conflict, and the response hands back the
+      intervening changes so the caller can reconcile against what actually
+      happened rather than clobber it. Optimistic, because writes are not
+      blocked up front; they are validated at commit. The effect is that
+      concurrent work — say, the owner editing the same project in another
+      session — cannot be lost to a blind overwrite.
+    </p>
+
+    <h2>The typed changelog</h2>
+    <p>
+      Activation is also what populates the audit trail. Every create and update
+      is recorded by the engine itself — not by the caller — as a versioned
+      <code>entity_history</code> entry carrying the author, the trigger (often
+      the transaction id), and a change summary of who changed what, when, and
+      why. Because history is written server-side, it cannot be skipped,
+      back-dated or rewritten by a client, which is exactly what makes the audit
+      trail trustworthy: the changelog is a consequence of committing, not a
+      courtesy the caller has to remember.
+    </p>
+    <p>
+      This is the other half of the entity model. The
+      <a href="/docs/entities/">typed relations</a> tell you how things connect;
+      the history tells you how they got that way. Together they let you trace
+      any entity both across the graph and back through time.
+    </p>
+
+    <h2>Avoiding duplicates</h2>
+    <p>
+      Before starting, a pipeline checks for an interrupted transaction so it
+      does not open a duplicate. Operating on a transaction that is already
+      cancelled or already completed is reported as a conflict, prompting the
+      caller to re-read the current state rather than guess.
+    </p>
+</DocsLayout>

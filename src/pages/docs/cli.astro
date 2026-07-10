@@ -1,0 +1,216 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import CliFacts from '../../content/generated/cli-facts.mdx';
+---
+
+<DocsLayout
+  title="Kvendra CLI — developer docs"
+  description="The Kvendra CLI: a Rust binary that runs a zero-knowledge vault and an MCP capability broker — your agent executes sensitive operations through it without ever seeing the credential."
+>
+    <span class="kvd-kicker">Reference</span>
+    <h1>The Kvendra CLI</h1>
+    <p class="kvd-callout">
+      <strong>Pre-alpha.</strong> The CLI is under active development — the
+      <code>kvendra</code> binary is installed from source, the crates.io name is
+      reserved but not yet published, and a Homebrew formula and signed builds are
+      planned. Treat commands and defaults below as the current shape, not a
+      frozen contract.
+    </p>
+    <p>
+      The CLI is where Kvendra meets your machine. It is a foundational security
+      layer — but <strong>optional to get started</strong>: the Platform and the
+      Skills work without it, and you add it only when you want your agent to run
+      real ops (a git push, a deploy) without exposing your tokens. It is a single
+      Rust binary that does two jobs at once: it keeps your secrets in a local
+      <strong>zero-knowledge vault</strong>, and it acts as an
+      <strong>MCP capability broker</strong> that runs sensitive operations on
+      behalf of a tool or agent — without ever handing the underlying credential
+      to that caller.
+    </p>
+
+    <CliFacts />
+
+    <h2>What it is, in one idea</h2>
+    <p>
+      The design separates <em>the thing that decides what to do</em> (the LLM)
+      from <em>the thing that holds the keys</em> (the vault). The model never
+      sees a token. It calls a primitive over MCP; the broker resolves the secret,
+      runs the operation <strong>in a subprocess outside the model's context</strong>,
+      and returns only a sanitized result. The credential is used, but never
+      exposed to the caller that asked for it.
+    </p>
+
+    <h2>The user flow, step by step</h2>
+
+    <h3>1. Install</h3>
+    <p>Build from source while the project is pre-alpha:</p>
+    <pre><code>cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra</code></pre>
+    <p>
+      That gives you the <code>kvendra</code> binary. (Not on crates.io yet; brew
+      is pending.)
+    </p>
+
+    <h3>2. <code>kvendra init</code> — create the vault (once)</h3>
+    <p>Run this a single time to set up your local vault. It establishes:</p>
+    <ul>
+      <li>
+        a <strong>master password</strong>, from which the encryption key is
+        derived with <strong>Argon2id</strong> (a memory-hard KDF);
+      </li>
+      <li>
+        a <strong>BIP-39 recovery phrase</strong> — 12 words, shown
+        <strong>exactly once</strong> — for recovering access if you forget the
+        master password;
+      </li>
+      <li>
+        <strong>8 single-use recovery codes</strong> for critical actions.
+      </li>
+    </ul>
+    <p>
+      Save the recovery material when it is shown — it is never displayed again.
+      Nothing in clear text touches the disk: the vault stores only encrypted
+      blobs.
+    </p>
+
+    <h3>3. Profiles — add a set of credentials</h3>
+    <pre><code>kvendra secret add &lt;profile_id&gt; --secret-file &lt;path&gt;</code></pre>
+    <p>
+      A <strong>profile</strong> is one named set of credentials, encrypted with
+      <strong>AES-256-GCM</strong> and stored as a per-profile blob in the vault
+      directory. Each profile carries a type — <code>github_pat</code>,
+      <code>npm_token</code>, <code>aws_credentials</code>,
+      <code>generic</code>, and so on — so the broker knows how to inject it.
+    </p>
+
+    <h3>4. Allowlist policies — declare what is permitted</h3>
+    <p>
+      Each profile gets a YAML <strong>allowlist</strong>, signed with
+      <strong>HMAC</strong>, that declares precisely which operations and
+      parameters the broker will run for it. Per primitive, for example:
+    </p>
+    <ul>
+      <li><strong>git</strong> — allowed repos / refs, forbidden args;</li>
+      <li><strong>shell</strong> — allowed binaries, argument constraints, a working-directory pattern;</li>
+      <li><strong>http</strong> — a URL pattern (regex) and forbidden headers.</li>
+    </ul>
+    <p>
+      Defaults are <strong>restrictive</strong>: anything ambiguous or not
+      explicitly allowed is rejected. The HMAC signature is
+      <strong>re-verified on every broker start</strong>, so an allowlist edited
+      out of band is detected rather than silently honoured.
+    </p>
+
+    <h3>5. <code>kvendra unlock</code> — in your terminal, not the agent</h3>
+    <p>
+      Unlocking derives the key from your master password and writes a
+      <strong>machine-bound session</strong> — tied to this host, user and home —
+      with a time-to-live. You run this in a <strong>real terminal</strong>; the
+      broker requires a genuine TTY, so a captured environment or an MCP client
+      cannot unlock the vault on its own.
+    </p>
+    <ul>
+      <li>
+        Default TTL is <strong>4 hours</strong>; the configurable maximum is
+        <strong>24 hours</strong>.
+      </li>
+      <li>
+        Flags include <code>--ttl</code> (set the lifetime),
+        <code>--extend</code> (refresh an active session),
+        <code>--no-keychain</code>, and <code>--recover</code> (reset the master
+        password via the BIP-39 phrase).
+      </li>
+    </ul>
+
+    <h3>6. Use it with Claude Code</h3>
+    <p>
+      The MCP client launches <code>kvendra mcp serve</code> over stdio. The
+      broker reads the existing unlocked session —
+      <strong>the master password never enters the MCP process</strong>. When the
+      LLM calls a primitive, the vault resolves the secret and injects it
+      <strong>only into the operation's subprocess</strong> (an environment
+      variable or an ephemeral credential helper). The response passes through a
+      detection/sanitization layer and is returned to the agent
+      <strong>with the credential stripped out</strong>.
+    </p>
+    <pre><code># Inspect the broker's primitive surface — no unlock required
+kvendra capabilities --pretty</code></pre>
+
+    <h2>The seven primitives (plus an escape hatch)</h2>
+    <p>
+      The broker exposes seven open-core capability primitives —
+      <code>kvendra.git</code>, <code>kvendra.github</code>,
+      <code>kvendra.npm</code>, <code>kvendra.pypi</code>,
+      <code>kvendra.aws</code>, <code>kvendra.http</code> and
+      <code>kvendra.shell</code> (their exact operations are in the manifest
+      above) — plus one escape hatch:
+    </p>
+    <ul>
+      <li>
+        <code>kvendra.unsafe.raw_token</code> — explicit opt-in, rate-limited per
+        session, requires a stated reason, and is <strong>always flagged in the
+        audit log</strong>. It is the last resort when no structured primitive
+        fits, not a normal path.
+      </li>
+    </ul>
+
+    <h2>Approval modes</h2>
+    <p>
+      You choose how much the broker prompts before acting:
+    </p>
+    <ul>
+      <li><code>silent</code> — never prompts (for non-interactive contexts);</li>
+      <li><code>ask</code> — prompts on every call;</li>
+      <li>
+        <code>ask-destructive</code> — <strong>the default</strong>: prompts only
+        for operations the manifest marks destructive.
+      </li>
+    </ul>
+    <p>
+      Under MCP the prompt is a native <strong>operating-system modal</strong>
+      (macOS today; native Touch ID is pre-alpha). The mode is configurable by
+      environment variable, per profile, or in global config — the most specific
+      setting wins.
+    </p>
+
+    <h2>Break-glass vs. the escape hatch</h2>
+    <p>
+      These are two different things, and the distinction matters:
+    </p>
+    <ul>
+      <li>
+        <strong>Break-glass</strong> (<code>kvendra bypass</code> /
+        <code>kvendra protect</code>) temporarily <em>grants a capability</em> in
+        workspace mode. Grants are signed with <strong>ed25519</strong>, scoped to
+        a specific <code>primitive.op</code> with a TTL, and revocable with
+        <code>protect</code>. It widens what is allowed, briefly and accountably.
+      </li>
+      <li>
+        <strong>The escape hatch</strong> (<code>kvendra.unsafe.raw_token</code>)
+        hands a raw token to the caller. It does not widen an allowlist; it
+        bypasses the whole brokering model for one call, which is why it is
+        opt-in, rate-limited and always flagged.
+      </li>
+    </ul>
+
+    <h2>Audit and recovery</h2>
+    <p>
+      Every brokered operation is written to a local <strong>HMAC-chained audit
+      log</strong> (SQLite), where each entry commits to the one before it. You
+      can verify the chain end to end:
+    </p>
+    <pre><code>kvendra audit --verify   # detects tampering row by row</code></pre>
+    <p>
+      If access is ever lost, recovery has two layers: the
+      <strong>BIP-39 phrase</strong> resets the master password, and the
+      <strong>single-use recovery codes</strong> authorize critical actions.
+    </p>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

@@ -1,0 +1,89 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import PlatformFacts from '../../content/generated/platform-facts.mdx';
+---
+
+<DocsLayout
+  title="Platform — Kvendra developer docs"
+  description="The Kvendra Platform engine: a self-hostable knowledge base that keeps your project's knowledge structured and findable, retrieved by meaning rather than exact keywords, on plain PostgreSQL."
+>
+    <span class="kvd-kicker">Concepts</span>
+    <h1>The Platform engine</h1>
+    <p>
+      Platform is the open knowledge-base engine. It is the piece a developer
+      can run entirely on their own machine to get a complete, single-tenant KB:
+      a database, the engine, and the runtime, brought up together.
+    </p>
+
+    <PlatformFacts />
+
+    <h2>What Platform is for</h2>
+    <p>
+      Platform keeps the structured knowledge of your project — its components,
+      requirements, decisions, issues, tests, releases — in one place your agent
+      can read and write. Crucially, it lets you <strong>find the right thing by
+      describing it</strong>, not by knowing its exact id or the exact words used
+      when it was written. Ask "how do we avoid leaking tokens" and it surfaces
+      the broker and the allowlist even if those words never appear verbatim.
+    </p>
+    <p>
+      That is the whole promise: a project memory that stays organised as it
+      grows, and that answers questions by <em>meaning</em> rather than by
+      literal keyword match.
+    </p>
+
+    <h2>How it finds things by meaning</h2>
+    <p>
+      Under the hood the engine uses <em>embeddings</em> for semantic retrieval:
+      text is turned into vectors so that things which mean similar things end up
+      close together, and a query finds the nearest matches. You do not need to
+      think about any of this to use Platform — it is an internal detail of how
+      search ranks results. Kvendra stores both the entity data and these vectors
+      in the same PostgreSQL database (via the <code>pgvector</code> extension),
+      so there is no separate search service to keep in sync.
+    </p>
+    <p>
+      It is Postgres all the way down — <strong>your data, in your database, with
+      a clean export</strong>. There is no proprietary store to escape from.
+    </p>
+    <p class="kvd-learn-more">
+      Learn more about vector search:
+      <a href="https://github.com/pgvector/pgvector" rel="noopener noreferrer"
+        >pgvector</a
+      >, the open-source extension Kvendra builds on.
+    </p>
+
+    <h2>Where embeddings come from</h2>
+    <p>
+      Something has to turn text into those vectors, and that is the one knob you
+      may care about when installing — a single setting,
+      <code>EMBEDDINGS_PROVIDER</code>, picks where it happens. There are three
+      modes:
+    </p>
+    <ul>
+      <li>
+        <strong>Ollama (recommended)</strong> — vectors are computed by a model
+        you run yourself, so nothing about your text leaves your infrastructure.
+      </li>
+      <li>
+        <strong>Kvendra Cloud free-tier</strong> — a hosted endpoint computes
+        them for you. Zero setup, when you would rather not run a model locally.
+      </li>
+      <li>
+        <strong>Mock</strong> — deterministic stub vectors, for CI and tests
+        where you want reproducible builds and no model dependency.
+      </li>
+    </ul>
+    <p>
+      The vector shape is wire-stable under a fixed alias, so the provider is an
+      operational choice, not a lock-in: stored data and semantic search behave
+      the same whichever mode you pick.
+    </p>
+</DocsLayout>
+
+<style>
+  .kvd-learn-more {
+    font-size: var(--fs-sm);
+    color: var(--fog);
+  }
+</style>

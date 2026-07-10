@@ -1,0 +1,198 @@
+---
+/**
+ * DocsLayout — the docs shell. Wraps BaseLayout and lays out a two-column grid:
+ * a category sidebar plus the page body (slotted into a .kvd-prose article).
+ *
+ * The sidebar is the single source of truth for the docs information
+ * architecture (the `categories` const below). The active link is derived from
+ * Astro.url.pathname. On narrow viewports the sidebar collapses into a
+ * <details> disclosure — no JS, no FOUC.
+ */
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const categories: {
+  label: string;
+  items: { href: string; label: string }[];
+}[] = [
+  {
+    label: 'Getting Started',
+    items: [
+      { href: '/docs/getting-started/', label: 'Quickstart' },
+      { href: '/docs/self-hosting/', label: 'Advanced install' },
+    ],
+  },
+  {
+    label: 'KB Engine',
+    items: [
+      { href: '/docs/platform/', label: 'Platform' },
+      { href: '/docs/entities/', label: 'Entities' },
+    ],
+  },
+  {
+    label: 'Skills',
+    items: [{ href: '/docs/skills/', label: 'Skills' }],
+  },
+  {
+    label: 'Pipelines',
+    items: [{ href: '/docs/pipelines/', label: 'Pipelines' }],
+  },
+  {
+    label: 'CLI & Security',
+    items: [
+      { href: '/docs/cli/', label: 'CLI' },
+      { href: '/docs/security/', label: 'Security' },
+    ],
+  },
+];
+
+const here = Astro.url.pathname;
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="kvd-docs">
+    <details class="kvd-docs__nav-wrap" open>
+      <summary class="kvd-docs__nav-toggle">Documentation menu</summary>
+      <nav class="kvd-docs__sidebar" aria-label="Documentation">
+        <a
+          href="/docs/"
+          class="kvd-docs__home"
+          aria-current={here === '/docs/' ? 'page' : undefined}>Overview</a
+        >
+        {
+          categories.map((cat) => (
+            <div class="kvd-docs__group">
+              <span class="kvd-docs__group-label">{cat.label}</span>
+              <ul>
+                {cat.items.map((item) => (
+                  <li>
+                    <a
+                      href={item.href}
+                      aria-current={here === item.href ? 'page' : undefined}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </nav>
+    </details>
+
+    <article class="kvd-prose kvd-docs__body">
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .kvd-docs {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--sp-8);
+    align-items: start;
+  }
+
+  /* The <details> wrapper ships with the `open` attribute, so on desktop the
+     sidebar is always shown and its toggle is hidden — it simply sits in the
+     first grid column. (Modern Chromium hides a closed <details>'s content via
+     content-visibility on ::details-content, which a `display` rule on the
+     child cannot revert, so `open` is the only CSS-only way to keep it shown.)
+     On mobile the toggle reappears; the menu starts expanded but can collapse. */
+  .kvd-docs__nav-wrap {
+    position: sticky;
+    top: calc(60px + var(--sp-5));
+  }
+  .kvd-docs__nav-toggle {
+    display: none;
+  }
+
+  .kvd-docs__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+    font-size: var(--fs-sm);
+  }
+
+  .kvd-docs__home {
+    font-family: var(--display);
+    font-weight: 600;
+    color: var(--fog);
+    transition: color var(--dur-mecanico) var(--ease-mecanico);
+  }
+  .kvd-docs__home:hover,
+  .kvd-docs__home[aria-current='page'] {
+    color: var(--fg);
+  }
+
+  .kvd-docs__group-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--phos-readable);
+    margin-bottom: var(--sp-2);
+  }
+
+  .kvd-docs__sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+
+  .kvd-docs__sidebar li a {
+    display: block;
+    padding: var(--sp-1) 0 var(--sp-1) var(--sp-3);
+    border-left: 2px solid var(--line-soft);
+    color: var(--fog);
+    transition: color var(--dur-mecanico) var(--ease-mecanico),
+      border-color var(--dur-mecanico) var(--ease-mecanico);
+  }
+  .kvd-docs__sidebar li a:hover {
+    color: var(--fg);
+  }
+  .kvd-docs__sidebar li a[aria-current='page'] {
+    color: var(--fg);
+    border-left-color: var(--phos);
+  }
+
+  .kvd-docs__body {
+    max-width: 72ch;
+  }
+
+  /* Mobile: collapse the sidebar into a real disclosure. ------------------- */
+  @media (max-width: 820px) {
+    .kvd-docs {
+      grid-template-columns: 1fr;
+      gap: var(--sp-5);
+    }
+    .kvd-docs__nav-wrap {
+      position: static;
+      border: 1px solid var(--line-soft);
+    }
+    .kvd-docs__nav-toggle {
+      display: block;
+      padding: var(--sp-3) var(--sp-4);
+      font-family: var(--display);
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--fg);
+    }
+    .kvd-docs__sidebar {
+      padding: var(--sp-4);
+      border-top: 1px solid var(--line-soft);
+    }
+  }
+</style>

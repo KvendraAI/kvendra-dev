@@ -1,0 +1,159 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import EntityTypes from '../../content/generated/entity-types.mdx';
+
+// The per-type reference. Authored from the open-core entity model; the
+// overview paragraph above the table is generated from the KB help topic.
+const types = [
+  { id: 'PRJ', name: 'Project', use: 'The root of a knowledge base: one project per product or codebase. Everything else hangs off it.' },
+  { id: 'CMP', name: 'Component', use: 'A distinct part of the project — a binary, a service, an engine. Carries its stack, repo and status.' },
+  { id: 'IF', name: 'Interface', use: 'A contract between components: a wire schema, an API, a manifest. The source of truth for field names.' },
+  { id: 'REQ', name: 'Requirement', use: 'A formal requirement with acceptance criteria. The "what" a change must satisfy.' },
+  { id: 'TEST', name: 'Test', use: 'A recorded test case: preconditions, process, validations and evidence.' },
+  { id: 'REG', name: 'Regression suite', use: 'A named suite of checks run repeatedly to guard against regressions.' },
+  { id: 'ISSUE', name: 'Issue', use: 'A work item: a bug, a task, an incident. Lands on status "open" when activated.' },
+  { id: 'REL', name: 'Release', use: 'A shipped version, with an automatic changelog and links to what it contains.' },
+  { id: 'SLA', name: 'Service-level objective', use: 'A target the system is held to — latency, availability, error budget.' },
+  { id: 'ROAD', name: 'Roadmap', use: 'A multi-step plan or initiative that future work derives from.' },
+  { id: 'GLO', name: 'Glossary term', use: 'A canonical definition, so naming stays consistent across the project.' },
+  { id: 'STD', name: 'Standard / playbook', use: 'A reusable recipe or policy. Skills read these at runtime instead of hardcoding steps.' },
+  { id: 'PAT', name: 'Pattern / lesson', use: 'A distilled lesson learned, captured so it is not relearned the hard way.' },
+  { id: 'ADR', name: 'Architecture decision record', use: 'A decision, its context and consequences. Lands on status "accepted" when activated.' },
+  { id: 'RUN', name: 'Run', use: 'A recorded execution — of a suite, a job, a pipeline. Lands on status "recorded".' },
+  { id: 'UX', name: 'UX artifact', use: 'A design or user-experience artifact tied to the work.' },
+  { id: 'DOC', name: 'Documentation', use: 'A documentation entry — like the architecture overview this portal renders.' },
+  { id: 'ENV', name: 'Environment', use: 'A described environment. Lands on status "recorded" when activated.' },
+  { id: 'COST', name: 'Cost', use: 'A cost record attached to a component or initiative.' },
+  { id: 'CFG', name: 'Config', use: 'A configuration entry — the twentieth type alongside the nineteen first-class ones.' },
+];
+---
+
+<DocsLayout
+  title="Entities — Kvendra developer docs"
+  description="The Kvendra entity model: each typed entity, what it is for, and how transactions and relations tie them together."
+>
+    <span class="kvd-kicker">Reference</span>
+    <h1>The entity model</h1>
+    <p>
+      Kvendra models everything you know about a project as <em>typed
+      entities</em>. Instead of free-form documents, knowledge is captured as
+      structured records with stable ids, typed relations and an automatic
+      changelog. That structure is what makes the KB searchable, auditable, and
+      safe for an agent to read and write.
+    </p>
+    <p>
+      Each entity has a stable, human-readable id (<code>PRJ-&lt;PROJECT&gt;</code>,
+      <code>CMP-&lt;PROJECT&gt;-&lt;COMP&gt;</code>, and an auto id of the form
+      <code>&lt;TYPE&gt;-&lt;PROJECT&gt;-&lt;6HEX&gt;</code> for the rest), a
+      type that fixes its shape, a status, free-text content for semantic
+      search, structured metadata, and its typed relations to other entities.
+      Twenty types cover the whole lifecycle of a project; the engine validates
+      every id, every relation target and every status transition, so the graph
+      stays consistent rather than drifting into a pile of loosely related
+      notes.
+    </p>
+
+    <EntityTypes />
+
+    <h2>The twenty types, grouped by purpose</h2>
+    <p>
+      The types are not a flat list — they cluster around the jobs a project
+      actually has. Reading them by group is the fastest way to build a mental
+      model of what belongs in the knowledge base.
+    </p>
+    <ul>
+      <li>
+        <strong>Planning</strong> — <code>PRJ</code> (the project root),
+        <code>CMP</code> (a component of it), <code>ROAD</code> (a roadmap or
+        initiative) and <code>REQ</code> (a formal requirement): the "what we
+        are building, and why" layer.
+      </li>
+      <li>
+        <strong>Decisions &amp; standards</strong> — <code>ADR</code> records an
+        architecture decision with its context and consequences;
+        <code>STD</code> captures a reusable standard or playbook that skills
+        read at runtime instead of hardcoding steps.
+      </li>
+      <li>
+        <strong>Interfaces &amp; vocabulary</strong> — <code>IF</code> is a
+        contract between components (a schema, an API) and the source of truth
+        for field names; <code>GLO</code> is a canonical glossary definition, so
+        naming stays consistent project-wide.
+      </li>
+      <li>
+        <strong>Quality</strong> — <code>TEST</code> is a recorded test case,
+        <code>REG</code> a named regression suite, <code>RUN</code> a recorded
+        execution of one, and <code>SLA</code> a target the system is held to.
+      </li>
+      <li>
+        <strong>Work &amp; delivery</strong> — <code>ISSUE</code> is a unit of
+        work (bug, task or incident), and <code>REL</code> is a shipped release
+        that groups what it contains and carries an automatic changelog.
+      </li>
+      <li>
+        <strong>Knowledge</strong> — <code>PAT</code> is a distilled
+        lesson-learned so it is not relearned the hard way, <code>DOC</code> a
+        documentation entry (like the page you are reading), and <code>UX</code>
+        a design or user-experience artifact tied to the work.
+      </li>
+      <li>
+        <strong>Operations</strong> — <code>ENV</code> describes an environment,
+        <code>COST</code> attaches a cost record to a component or initiative,
+        and <code>CFG</code> holds a configuration entry.
+      </li>
+    </ul>
+
+    <h2>Every type, one by one</h2>
+    <table>
+      <thead>
+        <tr><th>Type</th><th>Name</th><th>What it is for</th></tr>
+      </thead>
+      <tbody>
+        {
+          types.map((t) => (
+            <tr>
+              <td><code>{t.id}</code></td>
+              <td>{t.name}</td>
+              <td>{t.use}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    <h2>How entities connect</h2>
+    <p>
+      Types on their own are just records; the value is in how they connect.
+      Entities are joined by <em>typed relations</em> — a relation is not a bare
+      pointer but a named, directional link the engine understands. A component
+      is <code>part_of</code> its project; a requirement
+      <code>derives_from</code> a roadmap; a test is <code>part_of</code> the
+      requirement it verifies; an issue <code>implements</code> or
+      <code>fixes</code> the work it covers; an architecture decision
+      <code>affects</code> the components it touches; and a release groups the
+      changes it ships. (Each project's exact relation vocabulary lives in the
+      knowledge base; these are illustrative.)
+    </p>
+    <p>
+      Put together, those links form a graph: from a release you can walk to the
+      issues it closed, from an issue to the requirement behind it, from that
+      requirement up to the roadmap it derives from, and across to the tests
+      that prove it and the decisions that shaped it. Because the relations are
+      typed — and because the engine validates every relation target so a link
+      can never point at something that does not exist — the graph is queryable
+      and trustworthy rather than a tangle of prose cross-references. That is
+      what makes end-to-end traceability possible: any entity can answer "what
+      led to this, and what depends on it".
+    </p>
+
+    <h2>History</h2>
+    <p>
+      On top of the relations, the engine keeps a full version history of every
+      entity automatically. Each create and update lands as a versioned entry
+      recording the author, the trigger (often the transaction that made the
+      change) and a summary — so you can always answer "what changed, when, and
+      why" without anyone having to remember to write it down. How that history
+      is populated, transaction by transaction, is covered in
+      <a href="/docs/pipelines/">pipelines</a>.
+    </p>
+</DocsLayout>

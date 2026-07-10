@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Principles — Kvendra"
+  description="The principles behind Kvendra: open-core, a zero-knowledge vault, a typed server-side knowledge base, dogfooding, BYOK and MCP-native interfaces, and data you own on your own Postgres."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Principles</span>
+    <h1>What Kvendra is built on</h1>
+    <p>
+      A few convictions shape every part of Kvendra. They explain why the core
+      is open, why the agent never holds your secrets, and why your knowledge
+      lives in a database you can read with plain SQL.
+    </p>
+
+    <h2>Open-core</h2>
+    <p>
+      The pieces that earn your trust — the knowledge-base engine, the skills,
+      the broker — are open source, because trust and adoption come from being
+      able to read and run the code, not from a promise. Opening the core is
+      also how a tool spreads: developers reach for what they can inspect and
+      fork. Value is captured in the things that are genuinely hard to
+      replicate, not by locking up the parts you need to believe it works.
+    </p>
+
+    <h2>Zero-knowledge vault</h2>
+    <p>
+      The model orchestrating your work should never see a secret in the clear.
+      Secrets stay in a local vault; when an operation needs one, the broker
+      injects it at the moment of use and runs the operation on the agent's
+      behalf, returning only the result. The boundary between the thing that
+      reasons and the thing that holds the keys is enforced, not advisory — an
+      operation that is not on the signed allowlist simply does not run.
+    </p>
+
+    <h2>A typed, server-side knowledge base</h2>
+    <p>
+      Scattered notes and free-text memory rot quietly. Kvendra's answer is a
+      knowledge base where every fact is a typed entity, every change happens
+      inside a transaction, and the engine writes a typed changelog server-side
+      — so the history of why something is the way it is cannot drift out of
+      sync with the data. That entity + transaction + changelog model is the
+      defensible idea: structure your agent can query and reason over, with an
+      audit trail it cannot forge.
+    </p>
+
+    <h2>Dogfooding</h2>
+    <p>
+      This very site is generated from a Kvendra knowledge base. The pages you
+      are reading are produced by pulling typed entities and rendering them — so
+      the documentation cannot quietly diverge from the system it describes. If
+      Kvendra is good enough to build a product's developer portal from, it is
+      good enough to manage the development behind it.
+    </p>
+
+    <h2>BYOK and MCP-native</h2>
+    <p>
+      Bring your own model. Kvendra does not lock you to a particular LLM; the
+      agent that reasons is yours to choose. Everything speaks the Model Context
+      Protocol — the Platform's tools and the broker's primitives — so your
+      agent talks to Kvendra through an open, inspectable interface that is
+      portable across the editors and agents that speak MCP.
+    </p>
+
+    <h2>Your data</h2>
+    <p>
+      Your knowledge lives in PostgreSQL with <code>pgvector</code> — a database
+      you already know how to operate, back up and query. The whole core is
+      self-hostable, so nothing has to leave your infrastructure, and a clean
+      export means you are never locked in. The data is yours, in a place you
+      control.
+    </p>
+
+    <p>
+      See how these come together in <a href="/how-it-works/">how it works</a>,
+      or read more in <a href="/why/">why Kvendra</a>.
+    </p>
+  </article>
+</BaseLayout>

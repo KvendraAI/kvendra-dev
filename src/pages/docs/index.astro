@@ -1,0 +1,76 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+// The docs overview. Mirrors the docs sidebar order (Platform-first); this is
+// the destination of the landing's [Get Started] and "How it fits together".
+const categories = [
+  {
+    label: 'KB Engine (the required core)',
+    blurb: 'The self-hostable knowledge base your agent reads and writes — start here.',
+    items: [
+      { href: '/docs/platform/', title: 'Platform', blurb: 'A self-hostable KB on PostgreSQL that finds your project knowledge by meaning.' },
+      { href: '/docs/entities/', title: 'Entities', blurb: 'The typed entity model: what each type is for and how they relate.' },
+    ],
+  },
+  {
+    label: 'Skills (your day-to-day)',
+    blurb: 'The Claude Code plugin that runs pipelines as one-command workflows on the Platform.',
+    items: [
+      { href: '/docs/skills/', title: 'Skills', blurb: 'The Claude Code plugin: thin skills, with the knowledge living in the KB.' },
+    ],
+  },
+  {
+    label: 'Pipelines',
+    blurb: 'How changes land together, or not at all.',
+    items: [
+      { href: '/docs/pipelines/', title: 'Pipelines', blurb: 'Transactions, draft/activate/cancel, and the typed server-side changelog.' },
+    ],
+  },
+  {
+    label: 'CLI & Security (optional to get started)',
+    blurb: 'A foundational security layer you add when you want your agent to run real ops without seeing your tokens.',
+    items: [
+      { href: '/docs/cli/', title: 'CLI', blurb: 'The Rust binary: a zero-knowledge vault and an MCP capability broker.' },
+      { href: '/docs/security/', title: 'Security', blurb: 'The zero-knowledge vault, signed allowlists and the threat model behind them.' },
+    ],
+  },
+];
+---
+
+<DocsLayout
+  title="Documentation — Kvendra developer docs"
+  description="The Kvendra developer documentation: the CLI and its security model, the self-hostable KB engine, pipelines and the skills plugin — every page generated from the Kvendra knowledge base."
+>
+  <span class="kvd-kicker">Documentation</span>
+  <h1>How it fits together</h1>
+  <p>
+    At the core is <strong>Kvendra Platform</strong> — a self-hostable
+    knowledge-base engine your agent can query, and the one piece that is
+    required. <strong>Skills</strong> are your day-to-day: pipelines that run as
+    one-command workflows on top of the Platform. The <strong>CLI</strong> is a
+    foundational security layer that is optional to get started — add it when you
+    want your agent to run real operations without exposing your tokens.
+  </p>
+  <p>
+    Read it as a journey: stand up the Platform, do real work through the Skills,
+    then reach for the CLI when you need brokered ops. New here? The
+    <a href="/docs/getting-started/">Quickstart</a> is the golden path, in order,
+    ending in a first win.
+  </p>
+
+  {
+    categories.map((cat) => (
+      <section>
+        <h2>{cat.label}</h2>
+        <p>{cat.blurb}</p>
+        <ul>
+          {cat.items.map((item) => (
+            <li>
+              <a href={item.href}>{item.title}</a> — {item.blurb}
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</DocsLayout>

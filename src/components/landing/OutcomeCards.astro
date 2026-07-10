@@ -1,0 +1,93 @@
+---
+/**
+ * OutcomeCards — three outcome-led cards for the landing "What you build"
+ * section. Data is inline (no KB fetch); reuses the .kvd-card surface.
+ */
+const cards = [
+  {
+    title: 'KB Engine (Kvendra Platform)',
+    outcome: 'A knowledge base your agent can actually query.',
+    points: [
+      'PostgreSQL + pgvector semantic search',
+      'Typed entities with stable ids',
+      'Transactions and a server-side changelog',
+      'Self-hostable — the core runs on your own infra',
+    ],
+    href: '/docs/platform/',
+  },
+  {
+    title: 'Skills for AI agents',
+    outcome: 'Turn pipelines into one-command workflows.',
+    points: [
+      'A Claude Code plugin that runs on the Platform',
+      'Thin skills — the knowledge lives in the KB',
+      'Read at runtime, portable across projects',
+    ],
+    href: '/docs/skills/',
+  },
+  {
+    title: 'CLI & Broker — optional security layer',
+    outcome: 'Add a zero-knowledge vault and a capability broker.',
+    points: [
+      'Optional: Skills and Platform work without it',
+      'A zero-knowledge vault for your secrets',
+      'A capability broker that runs ops on your behalf',
+      'Pre-alpha — add it when you need brokered ops',
+    ],
+    href: '/docs/cli/',
+  },
+];
+---
+
+<div class="kvd-cards">
+  {
+    cards.map((c) => (
+      <a class="kvd-card kvd-outcome" href={c.href}>
+        <h3>{c.title}</h3>
+        <p class="kvd-outcome__lede">{c.outcome}</p>
+        <ul class="kvd-outcome__points">
+          {c.points.map((p) => (
+            <li>{p}</li>
+          ))}
+        </ul>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  .kvd-outcome {
+    display: flex;
+    flex-direction: column;
+  }
+  .kvd-outcome__lede {
+    font-size: var(--fs-body);
+    color: var(--fg);
+    margin-top: var(--sp-1);
+    margin-bottom: var(--sp-3);
+  }
+  .kvd-outcome__points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+  .kvd-outcome__points li {
+    position: relative;
+    padding-left: var(--sp-4);
+    font-size: var(--fs-sm);
+    color: var(--fog);
+    line-height: 1.5;
+  }
+  .kvd-outcome__points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    background: var(--phos);
+  }
+</style>

@@ -60,7 +60,7 @@ function renderCliFacts(cli) {
   return [
     `{/* generated from ${cli.entity_id} — do not edit by hand */}`,
     '',
-    `The **${cli.title}** is the foundational piece of Kvendra: a ${cli.language} binary (\`${cli.binary}\`, ${cli.license}).`,
+    `The **${cli.title}** is a foundational security layer — optional to get started: a ${cli.language} binary (\`${cli.binary}\`, ${cli.license}).`,
     '',
     mdxText(cli.summary),
     '',
@@ -99,11 +99,11 @@ function renderPlatformFacts(p) {
     '',
     p.scope.map((s) => `- ${mdxText(s)}`).join('\n'),
     '',
-    '## Embeddings and semantic search',
-    '',
-    mdxText(p.embeddings),
+    '## Search',
     '',
     mdxText(p.search),
+    '',
+    mdxText(p.embeddings),
     '',
   ].join('\n');
 }

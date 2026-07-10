@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Use cases — Kvendra"
+  description="What Kvendra is for: feature and bug pipelines with transactions and draft-to-active entities, incident RCA with postmortems, KB-driven documentation, regression suites that persist runs, and release management with an automatic changelog."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Use cases</span>
+    <h1>What you can do with Kvendra</h1>
+    <p>
+      Kvendra is for developers who run AI-assisted development and want it to
+      be traceable. Each of these is a real workflow that the entity +
+      transaction + changelog model makes auditable rather than ephemeral. The
+      common thread: an agent does the work, but every meaningful step lands as
+      typed state you can later query and explain.
+    </p>
+
+    <h2>Feature pipelines</h2>
+    <p>
+      Plan, implement and ship a feature as one orchestrated workflow. The agent
+      opens a transaction, drafts the requirement and design entities, then
+      promotes them from draft to active only when the work actually lands — so
+      a half-finished feature never pollutes the knowledge base. Because the
+      transaction is the unit of change, either the whole pipeline's state
+      commits together or none of it does.
+    </p>
+
+    <h2>Bug pipelines</h2>
+    <p>
+      Triage and fix bugs with the same discipline. A bug report becomes a typed
+      entity; the analysis, the test that reproduces it, and the fix are drafted
+      inside a transaction and linked back to it. The draft-to-active flow keeps
+      speculative findings separate from confirmed ones, and the relations
+      between report, cause and fix stay queryable long after the fix ships.
+    </p>
+
+    <h2>Incident RCA and postmortems</h2>
+    <p>
+      When something breaks in production, capture the incident as a first-class
+      entity with a root-cause analysis and a written postmortem. From it you
+      can derive the follow-up work — the runbook, the requirement, the
+      preventive pattern — each as its own linked entity. The changelog records
+      who changed what and when, so the postmortem is grounded in an audit trail
+      rather than memory.
+    </p>
+
+    <h2>KB-driven documentation</h2>
+    <p>
+      Generate documentation from the same knowledge base that drives the work,
+      so the docs cannot quietly diverge from reality. Each manual or page is
+      backed by typed entities; when the underlying facts change, the document
+      is regenerated from them. (This site is built exactly this way.)
+    </p>
+
+    <h2>Regression suites</h2>
+    <p>
+      Run regression suites and persist each execution as a typed run entity —
+      not a log line that scrolls away. Results accumulate as queryable history
+      you can compare against expectations, and a failing run can spawn a linked
+      issue automatically, so a regression becomes tracked work the moment it
+      appears.
+    </p>
+
+    <h2>Release management</h2>
+    <p>
+      Cut releases as typed entities with an automatically assembled changelog.
+      The release gathers the transactions and entities that landed since the
+      last one, so the changelog is derived from what actually changed rather
+      than hand-curated notes — and the trace from a release back to each
+      feature, bug and incident it contains stays intact.
+    </p>
+
+    <p>
+      These workflows ship as <a href="/docs/skills/">Skills</a>, built on the
+      <a href="/docs/platform/">Platform</a>. See <a href="/how-it-works/"
+        >how it works</a
+      > to follow the wiring.
+    </p>
+  </article>
+</BaseLayout>

@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Install with your AI — Kvendra"
+  description="Point your AI coding agent at kvendra.dev/llms.txt and have it install and configure Kvendra for you: bring up the self-hosted Platform, choose embeddings, wire up MCP, install Skills, and optionally add the CLI broker."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Install with your AI</span>
+    <h1>Let your agent install Kvendra</h1>
+    <p>
+      Kvendra ships a machine-readable install guide following the
+      <a href="https://llmstxt.org" rel="noreferrer">llms.txt</a> convention. It
+      contains the whole setup — Platform up, embeddings, MCP wiring, Skills, and
+      the optional CLI — condensed into unambiguous, copy-paste steps, in order,
+      with a verification after each one. An agent can read it and run the setup
+      end-to-end.
+    </p>
+
+    <p>Point your Claude Code at the guide and ask:</p>
+    <blockquote>
+      Read https://kvendra.dev/llms.txt and install and configure Kvendra for
+      me.
+    </blockquote>
+
+    <p>
+      You can also read it yourself: <a href="/llms.txt">kvendra.dev/llms.txt</a
+      >.
+    </p>
+
+    <h2>What the agent will do</h2>
+    <p>
+      The guide is platform-first, so the agent starts with the one required
+      piece — the self-hosted knowledge base — and layers the rest on top:
+    </p>
+    <ol>
+      <li>
+        <strong>Bring up the Platform.</strong> Clone the preconfigured
+        reference stack (or <code>kvendra-platform</code> alone), start it with
+        Docker Compose, and confirm the health check on port <code>7777</code>.
+        The guide is explicit about reading the auth token the right way for
+        each path.
+      </li>
+      <li>
+        <strong>Choose embeddings.</strong> Run Ollama as a container for pure
+        self-hosting (recommended, nothing leaves your infrastructure), or use
+        the shipped hosted free-tier default, or a mock provider for CI.
+      </li>
+      <li>
+        <strong>Connect Claude Code over MCP.</strong> Register the Platform as
+        an MCP server so the agent gains the 14 knowledge-base tools — the
+        agent wires it directly, or the <code>/setup</code> skill does the same
+        step interactively.
+      </li>
+      <li>
+        <strong>Install the Skills.</strong> Add the Claude Code plugin — it
+        ships the <code>/setup</code> onboarding wizard that can do the whole
+        MCP wiring for you — then verify with <code>/env-check</code>.
+      </li>
+      <li>
+        <strong>Optionally add the CLI broker.</strong> A zero-knowledge vault
+        and capability broker for brokered operations — optional and pre-alpha.
+      </li>
+    </ol>
+
+    <h2>Honest about where this is</h2>
+    <p>
+      The Platform and Skills are the parts you run today. The CLI broker is
+      <strong>optional and pre-alpha</strong> — Skills and the Platform work
+      without it, and the guide marks it clearly so your agent does not treat it
+      as required. Everything the guide references is open-core: the Platform is
+      AGPL, the CLI and Skills are Apache-2.0, and the reference stack is MIT.
+    </p>
+
+    <p>
+      Prefer to follow along by hand? The same steps live in the
+      <a href="/docs/getting-started/">Quickstart</a>.
+    </p>
+  </article>
+</BaseLayout>

@@ -12,9 +12,9 @@ The open knowledge-base engine: a single-tenant KB you self-host. A developer br
 - Self-host stack: docker-compose + multi-stage Dockerfile.
 - Public engine API: an MCP server over JSON-RPC (Fastify), moving to a streaming HTTP transport.
 
-## Embeddings and semantic search
+## Search
 
-Embeddings are pluggable; the wire alias kvendra-embedding-v1 is stable across providers (1024-dimension, L2-normalized). A deterministic mock provider is used in staging; a hosted Titan-class provider is the production target.
+Search ranks entities by semantic similarity, so a query finds the right thing by meaning rather than by exact keyword match.
 
-Semantic search ranks entities by cosine similarity over the embedding vectors.
+Semantic search over your content via pgvector; the embeddings provider is configurable, so the same data and search behave consistently whichever provider you pick.
 

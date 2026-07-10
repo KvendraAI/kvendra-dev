@@ -4,7 +4,7 @@
 
 The official Claude Code plugin that materializes the skills layer: the single set of skills for the project, distributed as a markdown plugin through a public marketplace. It is the join point that orchestrates the CLI and the KB.
 
-> Skills require the CLI by security design: every sensitive operation goes through the broker so the language model never sees raw tokens or keys. The user can fork the open-source skills to bypass this at their own risk.
+> Most skills run on the Platform alone — planning, drafting entities in a transaction, assembling a changelog are pure knowledge-base operations. The optional CLI broker is required only by skills that perform sensitive system operations (a git push, a deploy), where it routes the operation so the language model never sees a raw token or key. You can fork the open-source skills to change which steps use the broker.
 
 ## Direction
 

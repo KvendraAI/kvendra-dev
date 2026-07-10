@@ -1,0 +1,410 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Advanced install — Kvendra developer docs"
+  description="The step-by-step, build-it-yourself path: bring up Kvendra Platform on its own against your own Postgres, read the auth token from a bind-mount or out of the container, build the image from source, verify the published signed images, and tune every environment variable."
+>
+  <span class="kvd-kicker">Getting Started</span>
+  <h1>Advanced install</h1>
+  <p>
+    The <a href="/docs/getting-started/">Quickstart</a> commits to one path: the
+    reference stack with local embeddings, ready in one command. This page is for
+    when you want to go the other way — <strong>step by step, from the
+    minimum</strong>: run just the engine against your own Postgres, build the
+    image from source, verify the supply chain, and know every knob. Pick the
+    pieces you need.
+  </p>
+
+  <h2>Platform-only — your own Postgres, the minimum</h2>
+  <p>
+    The leanest footprint: clone the engine on its own and start it with Docker
+    Compose. This is the right choice when you already run Postgres, or simply
+    want the smallest possible thing on disk. Either way the stack is Node 20 +
+    Fastify + PostgreSQL 16 + pgvector, and the database migrations run
+    automatically on first boot.
+  </p>
+  <pre><code>git clone https://github.com/KvendraAI/kvendra-platform
+cd kvendra-platform && docker compose up -d</code></pre>
+  <p>Verify it is healthy:</p>
+  <pre><code>{`curl http://localhost:7777/healthz   # {"status":"ok","schema_version":"v1.0"}`}</code></pre>
+  <p class="kvd-callout">
+    The Platform-only compose ships with <code>EMBEDDINGS_PROVIDER=mock</code>
+    (deterministic stub vectors) so it boots with no external dependency. That is
+    fine for a first health check, but search is non-semantic until you point it
+    at a real provider — see <a href="#env">Environment variables</a> below.
+  </p>
+
+  <h2 id="token">Reading the auth token — two different commands</h2>
+  <p>
+    The engine bootstraps a bearer token at <code>/data/auth.token</code>
+    (mode <code>0600</code>) on first boot, and gates every <code>tools/call</code>
+    on it. Where you read it from depends on how <code>/data</code> is mounted —
+    and the two supported stacks differ:
+  </p>
+  <ul>
+    <li>
+      <strong>Platform-only (bind-mount):</strong> the
+      <code>kvendra-platform</code> compose file mounts <code>./data:/data</code>,
+      so the token is a real file on your host. Read it directly:
+      <pre><code>cat ./data/auth.token</code></pre>
+    </li>
+    <li>
+      <strong>Reference stack (named volume):</strong> the reference stack mounts
+      a <strong>named</strong> Docker volume at <code>/data</code>, so there is no
+      <code>./data/auth.token</code> on the host to cat. Read it out of the
+      running container instead:
+      <pre><code>docker exec kvendra-ref-platform cat /data/auth.token</code></pre>
+    </li>
+  </ul>
+  <p>
+    Then register the Platform with your agent. The
+    <a href="/docs/getting-started/#connect-claude-code"><code>/setup</code> wizard</a>
+    does all of this for you — what follows is the by-hand equivalent:
+  </p>
+  <pre><code>{`TOKEN=$(docker exec kvendra-ref-platform cat /data/auth.token)
+
+claude mcp add kvendra-platform http://localhost:7777/mcp \\
+  -H "Authorization: Bearer $TOKEN"`}</code></pre>
+  <p>
+    Or add the equivalent block to <code>.mcp.json</code> at your project root
+    (or <code>~/.claude/settings.json</code>):
+  </p>
+  <pre><code>{`{
+  "mcpServers": {
+    "kvendra-platform": {
+      "type": "http",
+      "url": "http://localhost:7777/mcp",
+      "headers": { "Authorization": "Bearer <your token>" }
+    }
+  }
+}`}</code></pre>
+  <p>
+    Restart Claude Code (or run <code>/mcp reconnect kvendra-platform</code>)
+    to activate it, then confirm by calling <code>whoami</code>. Once
+    connected, the agent gains 14 MCP tools: <code>entity_get</code>,
+    <code>entity_create</code>, <code>entity_update</code>,
+    <code>entity_archive</code>, <code>entity_related</code>,
+    <code>entity_query</code>, <code>entity_search</code>,
+    <code>txn_create</code>, <code>txn_activate</code>, <code>txn_cancel</code>,
+    <code>txn_check_interrupted</code>, <code>whoami</code>,
+    <code>config_get</code> and <code>help</code>.
+  </p>
+
+  <h2>Build from source</h2>
+  <p>
+    There is no separate compile-from-source toolchain to learn:
+    <strong>building Kvendra Platform means building its Docker image</strong>.
+    The image itself is a multi-stage Node 20 build (install production deps,
+    compile TypeScript, assemble a minimal runtime), so a plain
+    <code>docker build</code> against the cloned repo is the from-source build:
+  </p>
+  <pre><code>git clone https://github.com/KvendraAI/kvendra-platform
+cd kvendra-platform && docker build -t kvendra-platform:local .</code></pre>
+  <p>
+    The reference stack wraps exactly this for regulated environments that must
+    compile every Kvendra-controlled component from public source before running
+    anything. Its <code>scripts/build-from-source.sh</code> clones
+    <code>kvendra-platform</code>, runs <code>docker build</code>, and writes a
+    <code>docker-compose.override.yml</code> pointing the
+    <code>kvendra-platform</code> service at your locally-built image — so the
+    usual <code>./scripts/up.sh</code> picks it up with no registry pull of the
+    Kvendra bits:
+  </p>
+  <pre><code>cd kvendra-reference-stack
+./scripts/build-from-source.sh
+./scripts/up.sh   # uses the override automatically</code></pre>
+  <p class="kvd-callout">
+    The upstream base images (<code>node:20-alpine</code>,
+    <code>pgvector/pgvector:pg16</code>, <code>ollama/ollama</code>,
+    <code>postgres:16-alpine</code>) are still pulled from their public
+    registries — they are themselves open-source projects, not Kvendra builds.
+    Rebuilding those from source too is a rarely-needed extra step documented in
+    the reference stack's troubleshooting notes.
+  </p>
+
+  <h2>Published Docker images are signed</h2>
+  <p>
+    You do not have to build from source to trust the images. Each released
+    Kvendra image is <strong>signed with Sigstore/cosign keyless</strong> (via
+    GitHub Actions OIDC — there is no long-lived signing key to manage or leak),
+    and each release also attaches a <strong>signed SBOM attestation</strong>
+    (SPDX JSON, generated by Syft). The Fulcio certificate ties every signature
+    to the <code>KvendraAI/kvendra-platform</code> GitHub Actions workflow, and
+    the signature lands in Sigstore's transparency log (Rekor). Signing has
+    covered every release from the first published tag onwards.
+  </p>
+  <p>The reference stack ships a one-shot verifier:</p>
+  <pre><code>cd kvendra-reference-stack
+./scripts/verify.sh   # fails if any pinned image signature does not check out</code></pre>
+  <p>
+    Or verify by hand with <a href="https://docs.sigstore.dev" rel="noreferrer"
+      >cosign</a
+    > (<code>brew install cosign</code> on macOS):
+  </p>
+  <pre><code>{`IMG=docker.io/kvendra/kvendra-platform:<version>
+
+# 1. image signature
+cosign verify "$IMG" \\
+  --certificate-identity-regexp '^https://github.com/KvendraAI/kvendra-platform/' \\
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+# 2. SBOM attestation
+cosign verify-attestation "$IMG" \\
+  --certificate-identity-regexp '^https://github.com/KvendraAI/kvendra-platform/' \\
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \\
+  --type spdxjson`}</code></pre>
+  <p>
+    Both commands exit <code>0</code> with a JSON payload when the signature is
+    valid. The SBOM is also attached as a GitHub Release asset for archival and
+    compliance.
+  </p>
+
+  <h2 id="env">Environment variables</h2>
+  <p>
+    Everything is configured through environment variables (the reference stack
+    reads them from <code>.env</code>; the Platform-only compose sets them inline
+    or via its own <code>.env</code>). Most have sane defaults. The full surface:
+  </p>
+
+  <h3>Embeddings</h3>
+  <p>
+    The provider is resolved at startup. Allowed values are
+    <code>openai-compatible</code> and <code>mock</code> — a third,
+    <code>bedrock</code>, is intentionally <strong>not</strong> available in the
+    open-core Platform. With <code>openai-compatible</code> you can point at
+    Ollama, vLLM, llama.cpp or any other OpenAI-compatible
+    <code>/embeddings</code> endpoint; what you point it at decides whether
+    anything leaves your infrastructure. Vectors are validated as 1024-dim, so
+    use a 1024-dim model (e.g. <code>mxbai-embed-large</code>); other dimensions
+    fail at request time.
+  </p>
+  <p>
+    The Quickstart's <code>--with-ollama</code> sets these for you. If you are
+    not using that flag — running the engine on its own, or against an existing
+    Ollama you manage — point embeddings at the local container by hand:
+  </p>
+  <pre><code>{`# in .env
+EMBEDDINGS_PROVIDER=openai-compatible
+EMBEDDINGS_BASE_URL=http://kvendra-ollama:11434/v1
+EMBEDDINGS_MODEL=mxbai-embed-large`}</code></pre>
+  <p>
+    To use managed embeddings instead of running a model locally, point the same
+    <code>openai-compatible</code> provider at a hosted endpoint and supply a key.
+    For Kvendra Cloud embeddings that is the cloud base URL plus an
+    <code>EMBEDDINGS_API_KEY</code>:
+  </p>
+  <pre><code>{`# in .env — managed embeddings (e.g. Kvendra Cloud)
+EMBEDDINGS_PROVIDER=openai-compatible
+EMBEDDINGS_BASE_URL=https://api.kvendra.cloud/v1
+EMBEDDINGS_MODEL=mxbai-embed-large
+EMBEDDINGS_API_KEY=<your key>`}</code></pre>
+  <p>
+    After editing <code>.env</code>, re-run the stack (or restart the Platform
+    container) so the provider is picked up.
+  </p>
+  <p class="kvd-callout">
+    Embeddings are model-specific: vectors are not portable across models (a
+    property of embedding spaces, not a Kvendra limitation). Pick a model and
+    stay on it — switching models, or moving a corpus to a managed provider on a
+    different model, means re-embedding the corpus.
+  </p>
+  <table class="kvd-env-table">
+    <thead>
+      <tr><th>Variable</th><th>Default</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>EMBEDDINGS_PROVIDER</code></td>
+        <td><code>mock</code> (Platform-only)</td>
+        <td><code>openai-compatible</code> or <code>mock</code>.</td>
+      </tr>
+      <tr>
+        <td><code>EMBEDDINGS_BASE_URL</code></td>
+        <td>—</td>
+        <td
+          >Required for <code>openai-compatible</code>. E.g.
+          <code>http://kvendra-ollama:11434/v1</code>.</td
+        >
+      </tr>
+      <tr>
+        <td><code>EMBEDDINGS_MODEL</code></td>
+        <td>—</td>
+        <td
+          >Required for <code>openai-compatible</code>. E.g.
+          <code>mxbai-embed-large</code> (1024-dim).</td
+        >
+      </tr>
+      <tr>
+        <td><code>EMBEDDINGS_API_KEY</code></td>
+        <td>unset</td>
+        <td>Bearer token. Omit for local Ollama, which needs no auth.</td>
+      </tr>
+      <tr>
+        <td><code>EMBEDDINGS_TIMEOUT_MS</code></td>
+        <td><code>30000</code></td>
+        <td>Per-request timeout in milliseconds.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Postgres &amp; engine</h3>
+  <table class="kvd-env-table">
+    <thead>
+      <tr><th>Variable</th><th>Default</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>POSTGRES_USER</code></td>
+        <td><code>kvendra</code></td>
+        <td>Reference-stack Postgres user.</td>
+      </tr>
+      <tr>
+        <td><code>POSTGRES_PASSWORD</code></td>
+        <td><code>kvendra</code></td>
+        <td>Change it for anything beyond local.</td>
+      </tr>
+      <tr>
+        <td><code>POSTGRES_DB</code></td>
+        <td><code>kvendra_platform</code></td>
+        <td>Database name.</td>
+      </tr>
+      <tr>
+        <td><code>DATABASE_URL</code></td>
+        <td>—</td>
+        <td
+          >Platform-only connection string, e.g.
+          <code>postgres://kvendra:kvendra@db:5432/kvendra_platform</code>.</td
+        >
+      </tr>
+      <tr>
+        <td><code>PORT</code></td>
+        <td><code>7777</code></td>
+        <td>Port the engine listens on inside the container.</td>
+      </tr>
+      <tr>
+        <td><code>PLATFORM_HOST_PORT</code></td>
+        <td><code>7777</code></td>
+        <td
+          >Reference-stack host-side mapping. Change it if 7777 is taken on your
+          host.</td
+        >
+      </tr>
+      <tr>
+        <td><code>HOST</code></td>
+        <td><code>0.0.0.0</code></td>
+        <td>Listen address.</td>
+      </tr>
+      <tr>
+        <td><code>AUTH_TOKEN_FILE</code></td>
+        <td><code>/data/auth.token</code></td>
+        <td>Where the bearer token is generated and read from.</td>
+      </tr>
+      <tr>
+        <td><code>LOG_LEVEL</code></td>
+        <td><code>info</code></td>
+        <td><code>trace</code> | <code>debug</code> | … | <code>fatal</code>.</td>
+      </tr>
+      <tr>
+        <td><code>STAGE</code></td>
+        <td><code>local</code></td>
+        <td><code>local</code> | <code>staging</code> | <code>prod</code>.</td>
+      </tr>
+      <tr>
+        <td><code>PG_POOL_MAX</code></td>
+        <td><code>10</code></td>
+        <td>Postgres connection-pool size.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Backup sidecar &amp; Ollama (reference stack)</h3>
+  <table class="kvd-env-table">
+    <thead>
+      <tr><th>Variable</th><th>Default</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>BACKUP_CRON</code></td>
+        <td><code>30 3 * * *</code></td>
+        <td>Cron schedule for the <code>pg_dump</code> sidecar (daily 03:30).</td>
+      </tr>
+      <tr>
+        <td><code>BACKUP_RETENTION_DAYS</code></td>
+        <td><code>14</code></td>
+        <td>How many days of dumps to keep before pruning.</td>
+      </tr>
+      <tr>
+        <td><code>OLLAMA_MODELS_PRELOAD</code></td>
+        <td><code>llama3.1:8b,mxbai-embed-large</code></td>
+        <td
+          >Comma-separated models <code>up.sh --with-ollama</code> pulls on first
+          run. Includes the embedding model; trim it if you only need
+          embeddings.</td
+        >
+      </tr>
+      <tr>
+        <td><code>OLLAMA_HOST_PORT</code></td>
+        <td><code>11434</code></td>
+        <td>Host-side port for the Ollama container.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Volumes</h3>
+  <ul>
+    <li>
+      <strong>Platform-only</strong> bind-mounts <code>./data:/data</code> (so
+      the token is a host file) and keeps Postgres data in a named volume
+      <code>kvendra_platform_pgdata</code>.
+    </li>
+    <li>
+      <strong>Reference stack</strong> uses named volumes throughout —
+      <code>kvendra_ref_platform_data</code> (engine <code>/data</code>, incl. the
+      token), <code>kvendra_ref_pgdata</code> (Postgres) and
+      <code>kvendra_ref_ollama_models</code> (Ollama weights) — plus a host
+      <code>./backups</code> directory for the sidecar's dumps.
+    </li>
+  </ul>
+
+  <p class="kvd-learn-more">
+    Just want it running? Go back to the
+    <a href="/docs/getting-started/">Quickstart</a> — one command, local
+    embeddings, no signup.
+  </p>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+  .kvd-learn-more {
+    font-size: var(--fs-sm);
+    color: var(--fog);
+  }
+  .kvd-env-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+    display: block;
+    overflow-x: auto;
+  }
+  .kvd-env-table th,
+  .kvd-env-table td {
+    text-align: left;
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+  .kvd-env-table th {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--phos-readable);
+  }
+</style>

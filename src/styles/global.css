@@ -51,18 +51,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-5);
-  height: 60px;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-5);
+  min-height: 60px;
   max-width: var(--container-medium);
   margin-inline: auto;
   padding-inline: var(--sp-5);
+  padding-block: var(--sp-2);
 }
 
 .kvd-nav {
   display: flex;
   align-items: center;
-  gap: var(--sp-5);
+  gap: var(--sp-3) var(--sp-5);
   flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .kvd-nav {
+    gap: var(--sp-3) var(--sp-4);
+  }
 }
 
 .kvd-nav a {

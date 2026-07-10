@@ -1,0 +1,163 @@
+# Kvendra — install guide for AI agents
+
+Purpose: read this file and install + configure Kvendra end-to-end for the user. Kvendra is platform-first — the core is a self-hosted knowledge-base engine (Kvendra Platform). Skills run on top of it; the CLI is an optional, pre-alpha security layer. There is ONE primary path here: the reference stack with local Ollama embeddings (no signup, 100% local). The step-by-step / from-source / own-Postgres variants live in the Advanced install page (https://kvendra.dev/docs/self-hosting/). Run the steps in order; each ends with a verification you can check before moving on. Recommended host: Claude Code.
+
+## Prerequisites
+
+Before anything else, the host needs:
+- Docker (Docker Desktop, or Colima on macOS) — engine >= 20.10. Runs the engine and its database in isolated containers.
+- Docker Compose v2 (the `docker compose` subcommand, NOT the legacy `docker-compose` binary)
+- git
+- (No separate Ollama install — the reference stack runs Ollama as a container for you.)
+
+Verify:
+
+```
+docker --version          # 20.10+
+docker compose version    # v2.x
+git --version
+```
+
+## Architecture (what you are wiring)
+
+- Claude Code (host) talks to Kvendra Platform over MCP HTTP on port 7777 — this is the knowledge base (the required core).
+- Skills (a Claude Code plugin) run on top of the Platform, calling the same tools.
+- CLI & Broker (optional, pre-alpha): a second MCP server over stdio that brokers credentialed operations behind a zero-knowledge vault.
+
+## What you are spinning up (reference stack containers)
+
+- PostgreSQL 16 + pgvector — the knowledge base (entities + embedding vectors in one DB).
+- Kvendra Platform engine — the MCP server on :7777.
+- A backup sidecar — scheduled pg_dump dumps.
+- Ollama — local embeddings runtime, started only with `--with-ollama`.
+
+Details of the stack: https://github.com/KvendraAI/kvendra-reference-stack
+
+## Step 1 — Install (one command path)
+
+Clone the reference stack, create `.env` from the example, then bring it up with `--with-ollama`. There is NO config to edit — the flag wires the Platform to the local Ollama container for you. The stack is Node 20 + Fastify + PostgreSQL 16 + pgvector, and migrations (20 entity types) run automatically on first boot.
+
+```
+git clone https://github.com/KvendraAI/kvendra-reference-stack
+cd kvendra-reference-stack
+cp .env.example .env
+
+./scripts/up.sh --with-ollama
+```
+
+`up.sh --with-ollama` brings the stack up, waits for the healthcheck, pulls the local embedding model `mxbai-embed-large`, and points the Platform at it — on its own. Its final output prints the endpoints:
+- platform healthz:  http://localhost:7777/healthz
+- platform MCP:      http://localhost:7777/mcp
+
+Verify health:
+
+```
+curl http://localhost:7777/healthz      # expect: {"status":"ok","schema_version":"v1.0"}
+```
+
+NOTE: first boot takes 60–90s (pgvector init + migrations); the embedding model is a one-time, lightweight download.
+
+## Step 2 — Embeddings
+
+With `--with-ollama`, the stack runs a local embedding model (`mxbai-embed-large`) and wires the Platform to it for you — nothing leaves the machine, and there is no config to edit.
+
+PORTABILITY (documented fact, NOT a feature): embeddings are model-specific — vectors are not portable across models (a property of embedding spaces, not a Kvendra limitation). If the user ever switches the embedding model, they re-embed their corpus. There is no export/import migration tool in the open-core Platform — frame this as the re-embedding trade-off, not as a missing feature.
+
+Managed/cloud embeddings, and pointing embeddings at a provider by hand, are covered in the Advanced install page: https://kvendra.dev/docs/self-hosting/#env
+
+## Step 3 — Connect Claude Code (MCP)
+
+As the agent, wire it directly with the commands below. (Interactive alternative for the user: with the Skills plugin installed — Step 4 — the `/setup` skill automates this step end-to-end: it detects the running Platform, extracts the token, registers the server, and verifies. It is idempotent — it never duplicates a server that is already registered.) The reference stack keeps the bearer token inside a NAMED Docker volume, so read it out of the container:
+
+```
+TOKEN=$(docker exec kvendra-ref-platform cat /data/auth.token)
+
+claude mcp add kvendra-platform http://localhost:7777/mcp -H "Authorization: Bearer $TOKEN"
+```
+
+Or add the equivalent block to .mcp.json at the project root (or ~/.claude/settings.json):
+
+```
+{
+  "mcpServers": {
+    "kvendra-platform": {
+      "type": "http",
+      "url": "http://localhost:7777/mcp",
+      "headers": { "Authorization": "Bearer <your token>" }
+    }
+  }
+}
+```
+
+Verify: the agent gains 14 MCP tools — entity_get, entity_create, entity_update, entity_archive, entity_related, entity_query, entity_search, txn_create, txn_activate, txn_cancel, txn_check_interrupted, whoami, config_get, help. Call `whoami` to confirm the connection.
+
+## Step 4 — Install the Skills
+
+Skills are a Claude Code plugin that turn pipelines into one-command workflows.
+
+```
+/plugin marketplace add KvendraAI/kvendra-skills
+/plugin install kvendra-skills@kvendra-marketplace
+```
+
+NOTE: the published plugin ships wired to the hosted Kvendra Cloud by default. To use the skills against the LOCAL Platform from Step 1, a distinct `kvendra-platform` server must be registered — either the manual block from Step 3 (already done if this guide was followed in order), or the plugin's `/setup` skill (`/setup self-hosted`), which automates the same wiring and never duplicates an existing server. Activating a newly added MCP server requires a Claude Code restart or `/mcp reconnect kvendra-platform`. The skills call the exact same 14 tools, so they work identically once the local server is registered.
+
+Then confirm the wiring with the `/env-check` skill — it DIAGNOSES that the MCP is connected and reports the available tools and primitives (it does not configure anything):
+
+```
+/env-check
+```
+
+## Step 5 — Onboard the user's project (first step after connecting)
+
+The natural first step after install + connect is NOT generic — it is to onboard the user's own project into the KB. Use the `/onboard-project` skill, which auto-detects it is running against the LOCAL Platform from Step 1:
+
+```
+/onboard-project <PROJECT_ID>
+```
+
+It BOOTSTRAPS THE STRUCTURE of the project in the KB — a PRJ (project) entity, its components, the shared glossary and standards (GLO/STD), and a canonical CLAUDE.md for the repo. It supports a brand-new project, and for an EXISTING project the pieces can be mapped one at a time:
+
+```
+/onboard-project add-component <name>
+```
+
+SCOPE (do not overclaim): `/onboard-project` scaffolds the project structure and a canonical CLAUDE.md. It does NOT crawl or analyse all the code in an existing repo automatically — it sets up the skeleton the agent reads on every session.
+
+Payoff: once onboarded, the agent has the structured context of the project. Ask it to plan something small in the user's own project and the Skills will open a transaction, draft a roadmap (ROAD) and a couple of tasks (ISSUE) as typed entities, link them, and commit — so the plan lives in a queryable KB. Later, asking "what did we decide about X, and why?" surfaces those entities BY MEANING (e.g. a question about "throttling" finds entities that say "rate limit"). This is illustrative — the exact ids/titles depend on the project.
+
+## Step 6 — (Optional) Add the CLI security broker
+
+The CLI is OPTIONAL and PRE-ALPHA. Skills and the Platform work without it. Add it only for brokered operations behind a zero-knowledge vault. Not yet on crates.io (Homebrew formula pending), so install from source:
+
+```
+cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra
+```
+
+It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven primitives (git, github, npm, pypi, http, shell) with an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
+
+## Advanced / step-by-step (deferred)
+
+If the user wants to go one-by-one — run just the engine against their own Postgres, build the image from source, verify the signed published images, or see the full env-var table — point them to the Advanced install page: https://kvendra.dev/docs/self-hosting/
+
+Highlights of that path:
+- Platform-only: `git clone https://github.com/KvendraAI/kvendra-platform && cd kvendra-platform && docker compose up -d`. The compose bind-mounts `./data:/data`, so the token is a host file: `cat ./data/auth.token`.
+- Build from source = `docker build` against the cloned repo (multi-stage Node 20 image); the reference stack's `scripts/build-from-source.sh` wraps it for regulated environments.
+- Published images are signed with Sigstore/cosign keyless (GitHub Actions OIDC) + an SBOM attestation (SPDX JSON). Verify with the reference stack's `scripts/verify.sh` or `cosign verify` / `cosign verify-attestation`.
+
+## Licenses (open-core)
+
+- Platform: AGPL
+- CLI: Apache-2.0
+- Skills: Apache-2.0
+- reference-stack: MIT
+
+## Final verification checklist
+
+1. `docker --version`, `docker compose version`, `git --version` all succeed (prereqs).
+2. `curl http://localhost:7777/healthz` returns {"status":"ok","schema_version":"v1.0"}.
+3. You can read the token: `docker exec kvendra-ref-platform cat /data/auth.token` (reference stack).
+4. The agent lists 14 kvendra-platform MCP tools; `whoami` succeeds.
+5. Skills appear after `/plugin install`, pointed at the local server; `/env-check` confirms the MCP is connected.
+6. `/onboard-project <PROJECT_ID>` scaffolds the project structure (PRJ + components + GLO/STD + a canonical CLAUDE.md) in the local KB.
+7. (If installed) The CLI broker responds — remember it is pre-alpha and optional.

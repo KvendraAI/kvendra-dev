@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Why Kvendra — developer docs"
+  description="Why Kvendra is built open-core: open source you can read and fork, self-hostable on your own infrastructure, your own Postgres and pgvector, and an MCP-native interface for your agent."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Why Kvendra</span>
+    <h1>Why Kvendra</h1>
+    <p>
+      Kvendra is built around a simple stance: the pieces that hold your secrets
+      and your knowledge should be ones you can read, run and own. Four design
+      choices follow from that, and each is something you can verify yourself
+      rather than take on trust.
+    </p>
+
+    <h2>Open-core</h2>
+    <p>
+      The CLI, the knowledge-base engine and the skills plugin are open source.
+      You can read exactly how the broker resolves a secret, how the engine
+      embeds and ranks entities, and how a skill orchestrates a pipeline — and if
+      a default does not fit your project, you can fork it. There is no opaque box
+      between your agent and the operations it performs on your behalf.
+    </p>
+
+    <h2>Self-hostable</h2>
+    <p>
+      You can bring up your own single-tenant knowledge base and run it entirely
+      on infrastructure you control. The CLI runs as a normal process on your
+      machine; the engine runs where you put it. Nothing about the core has to
+      leave your network, which keeps the trust anchor — the vault and its master
+      password — under your direct control.
+    </p>
+
+    <h2>Your Postgres / pgvector</h2>
+    <p>
+      Knowledge lives in PostgreSQL with the <code>pgvector</code> extension — a
+      database you already know how to operate, back up and inspect. The same
+      store holds both the relational entity data and the vector index, so there
+      is one transaction boundary and no separate search service to keep in sync.
+      Your data is in a place you can query with plain SQL.
+    </p>
+
+    <h2>MCP-native</h2>
+    <p>
+      The tools and the capability broker speak the Model Context Protocol, so
+      your agent talks to Kvendra through an open, inspectable interface rather
+      than a bespoke integration. That keeps the boundary between the thing that
+      reasons and the thing that holds the keys explicit — and portable across
+      the agents and editors that speak MCP.
+    </p>
+  </article>
+</BaseLayout>

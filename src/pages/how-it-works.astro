@@ -1,0 +1,304 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="How it works — Kvendra"
+  description="How the three open-core pieces of Kvendra fit together over MCP: Claude Code as the host, the self-hosted Kvendra Platform knowledge base, the Skills plugin, and the optional CLI security broker."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">How it works</span>
+    <h1>How the pieces fit together</h1>
+    <p>
+      Kvendra is three open-core pieces wired together over the Model Context
+      Protocol (MCP), with one in the middle: your AI coding agent. The core is
+      <strong>Kvendra Platform</strong> — a self-hosted knowledge base. Skills
+      run on top of it, and an optional CLI adds a security broker. Everything
+      below is something you can read, run and own.
+    </p>
+
+    <h2>The three pieces</h2>
+    <p>
+      <strong>Kvendra Platform</strong> is the knowledge base and the only
+      required piece. It runs as an MCP HTTP server on port <code>7777</code>,
+      backed by PostgreSQL with the <code>pgvector</code> extension. It holds
+      typed entities, runs transactions, and writes a server-side changelog, so
+      the things your agent learns about a project live in a database you
+      control — not in scattered notes.
+    </p>
+    <p>
+      <strong>Skills</strong> are a Claude Code plugin. They turn pipelines —
+      planning a feature, running tests, cutting a release — into one-command
+      workflows by calling the Platform's tools. The recipes live in the
+      knowledge base, so the skills stay thin and portable.
+    </p>
+    <p>
+      <strong>CLI &amp; Broker</strong> is the optional, pre-alpha security
+      layer. It runs a second MCP server over stdio: a zero-knowledge vault plus
+      a capability broker that performs credentialed operations on your behalf,
+      so the model never sees a raw token. Skills and the Platform work without
+      it; you add it only when a workflow needs brokered system operations.
+    </p>
+
+    <h2>How they are wired</h2>
+    <p>
+      Your agent (Claude Code, the recommended host) speaks MCP. It talks to the
+      Platform to read and write the knowledge base, and — if it is installed —
+      to the CLI broker to run secured operations. The diagram below traces the
+      wiring.
+    </p>
+
+    <figure class="kvd-diagram" role="img"
+      aria-label="Claude Code, the host, sits in the center. It connects over MCP HTTP on port 7777 to Kvendra Platform, the knowledge base on Postgres and pgvector holding typed entities, transactions and a changelog. The Skills plugin runs on top of the Platform. Claude Code also connects, optionally, over MCP stdio to the CLI broker with its zero-knowledge vault.">
+      <div class="kvd-diagram__grid">
+        <!-- Left rail: Platform + Skills (the KB stack) -->
+        <div class="kvd-diagram__col kvd-diagram__col--left">
+          <div class="kvd-diagram__node kvd-diagram__node--core">
+            <span class="kvd-diagram__tag">Core · required</span>
+            <strong>Kvendra Platform</strong>
+            <span class="kvd-diagram__sub">MCP HTTP · :7777</span>
+            <span class="kvd-diagram__sub"
+              >Postgres + pgvector · typed entities · TXN · changelog</span
+            >
+          </div>
+          <div class="kvd-diagram__stack-arrow" aria-hidden="true">
+            <span>runs on</span>
+          </div>
+          <div class="kvd-diagram__node">
+            <strong>Skills</strong>
+            <span class="kvd-diagram__sub"
+              >Claude Code plugin · pipeline workflows</span
+            >
+          </div>
+        </div>
+
+        <!-- Center: host -->
+        <div class="kvd-diagram__col kvd-diagram__col--center">
+          <div class="kvd-diagram__edge kvd-diagram__edge--left" aria-hidden="true">
+            <span class="kvd-diagram__edge-label">MCP HTTP</span>
+          </div>
+          <div class="kvd-diagram__node kvd-diagram__node--host">
+            <strong>Claude Code</strong>
+            <span class="kvd-diagram__sub">the host · speaks MCP</span>
+          </div>
+          <div class="kvd-diagram__edge kvd-diagram__edge--right" aria-hidden="true">
+            <span class="kvd-diagram__edge-label">MCP stdio · optional</span>
+          </div>
+        </div>
+
+        <!-- Right rail: optional CLI -->
+        <div class="kvd-diagram__col kvd-diagram__col--right">
+          <div class="kvd-diagram__node kvd-diagram__node--optional">
+            <span class="kvd-diagram__tag kvd-diagram__tag--opt"
+              >Optional · pre-alpha</span
+            >
+            <strong>CLI &amp; Broker</strong>
+            <span class="kvd-diagram__sub">MCP stdio</span>
+            <span class="kvd-diagram__sub"
+              >zero-knowledge vault · capability broker</span
+            >
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        Claude Code reads and writes the knowledge base on the Platform over MCP
+        HTTP, and (when present) routes secured operations through the CLI broker
+        over MCP stdio.
+      </figcaption>
+    </figure>
+
+    <h2>The flow, step by step</h2>
+    <ol>
+      <li>
+        Your agent needs project context, so it queries the Platform over MCP —
+        semantic search and typed lookups across the knowledge base.
+      </li>
+      <li>
+        As work lands, the agent opens a transaction and creates or updates
+        entities; the Platform records every change in a typed changelog.
+      </li>
+      <li>
+        A skill orchestrates the larger workflow — a feature pipeline, a release
+        — by chaining those same Platform tools.
+      </li>
+      <li>
+        When a step needs a credentialed operation (push to a remote, call an
+        API), and the optional CLI is installed, the agent asks the broker to
+        run it. The broker resolves the secret from the vault and never hands it
+        back.
+      </li>
+    </ol>
+
+    <p>
+      Ready to wire it up? The <a href="/docs/getting-started/">Quickstart</a>
+      walks through it in order — Platform first, then the rest.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  /* Hand-drawn architecture diagram — pure CSS/HTML on the design tokens.
+     No external deps, no Mermaid. Three columns on desktop; stacks on mobile.
+     The grid never overflows the page: it scrolls inside its own container if
+     it must, but the layout is built to fit. */
+  .kvd-diagram {
+    margin: var(--sp-6) 0 var(--sp-7);
+  }
+
+  .kvd-diagram__grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-5);
+    background: var(--diagram-bg);
+    border: 1px solid var(--line-soft);
+  }
+
+  .kvd-diagram__col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+  .kvd-diagram__col--center {
+    align-items: center;
+  }
+
+  .kvd-diagram__node {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    padding: var(--sp-4);
+    background: var(--bg);
+    border: 1px solid var(--diagram-stroke);
+    color: var(--diagram-fg);
+  }
+  .kvd-diagram__node strong {
+    font-family: var(--display);
+    font-size: var(--fs-body);
+    letter-spacing: var(--ls-tight);
+  }
+  .kvd-diagram__node--host {
+    border-color: var(--phos);
+    border-width: 2px;
+  }
+  .kvd-diagram__node--core {
+    border-left: 3px solid var(--phos);
+  }
+  .kvd-diagram__node--optional {
+    border-style: dashed;
+    opacity: 0.92;
+  }
+
+  .kvd-diagram__sub {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+  }
+
+  .kvd-diagram__tag {
+    align-self: flex-start;
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--phos-readable);
+  }
+  .kvd-diagram__tag--opt {
+    color: var(--fog);
+  }
+
+  /* Vertical "runs on" connector between Platform and Skills. */
+  .kvd-diagram__stack-arrow {
+    position: relative;
+    height: var(--sp-6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .kvd-diagram__stack-arrow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--diagram-stroke);
+    opacity: 0.5;
+  }
+  .kvd-diagram__stack-arrow span {
+    position: relative;
+    background: var(--diagram-bg);
+    padding: 0 var(--sp-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+  }
+
+  /* Horizontal connectors from the host to each rail. */
+  .kvd-diagram__edge {
+    position: relative;
+    width: 100%;
+    height: 2px;
+    background: var(--diagram-stroke);
+    opacity: 0.55;
+    margin-block: var(--sp-3);
+  }
+  .kvd-diagram__edge--right {
+    background: repeating-linear-gradient(
+      to right,
+      var(--diagram-stroke) 0,
+      var(--diagram-stroke) 5px,
+      transparent 5px,
+      transparent 10px
+    );
+  }
+  .kvd-diagram__edge-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--diagram-bg);
+    padding: 0 var(--sp-2);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+    white-space: nowrap;
+  }
+
+  .kvd-diagram figcaption {
+    margin-top: var(--sp-3);
+    font-size: var(--fs-sm);
+    color: var(--fog);
+  }
+
+  /* Mobile: stack everything into one column, top to bottom, with vertical
+     connectors. No horizontal scroll. */
+  @media (max-width: 720px) {
+    .kvd-diagram__grid {
+      grid-template-columns: 1fr;
+      gap: var(--sp-4);
+    }
+    .kvd-diagram__edge {
+      width: 2px;
+      height: var(--sp-6);
+      margin: 0 auto;
+      background: var(--diagram-stroke);
+    }
+    .kvd-diagram__edge--right {
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--diagram-stroke) 0,
+        var(--diagram-stroke) 5px,
+        transparent 5px,
+        transparent 10px
+      );
+    }
+    .kvd-diagram__col--center {
+      order: -1;
+    }
+  }
+</style>

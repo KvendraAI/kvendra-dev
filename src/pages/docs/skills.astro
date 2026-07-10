@@ -1,0 +1,47 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import SkillsFacts from '../../content/generated/skills-facts.mdx';
+---
+
+<DocsLayout
+  title="Skills — Kvendra developer docs"
+  description="Kvendra Skills: the open-source Claude Code plugin that runs on the Platform's MCP tools to orchestrate end-to-end workflows — and works without the optional CLI."
+>
+    <span class="kvd-kicker">Reference</span>
+    <h1>The Skills plugin</h1>
+    <p>
+      Skills run on top of the Platform. They are markdown prompts — a Claude
+      Code plugin — that orchestrate the knowledge base into coherent workflows:
+      planning a feature, running tests, cutting a release, handling an
+      incident. Each skill drives the Platform's MCP tools, so it works against
+      the knowledge base on its own — no extra services required.
+    </p>
+
+    <SkillsFacts />
+
+    <h2>Thin skills, knowledge in the KB</h2>
+    <p>
+      A skill does not hardcode the specifics of your stack. Instead, the
+      reusable recipes live as standard/playbook entities (<code>STD</code>) in
+      the knowledge base, and the skill reads them at runtime. That keeps the
+      prompts small and portable while letting each project carry its own
+      conventions in a place that is versioned and auditable.
+    </p>
+
+    <h2>Skills run on the Platform — the CLI is optional</h2>
+    <p>
+      A skill talks to the Platform through its MCP tools — the same fourteen
+      that read and write the knowledge base. That is all most skills need, so
+      the majority run with just the Platform: no CLI, no broker. Planning a
+      feature, drafting entities inside a transaction, or assembling a release
+      changelog are pure knowledge-base operations.
+    </p>
+    <p>
+      The optional CLI broker enters only for the skills that perform system
+      operations — pushing to a git remote, calling a cloud API, running a shell
+      command, as a <code>deploy</code> skill would. For those, the operation is
+      routed through the broker so the model orchestrating the work never sees a
+      raw token or key. Because the skills are open source, you can read exactly
+      which steps need the broker and adapt them.
+    </p>
+</DocsLayout>

@@ -1,0 +1,63 @@
+---
+/**
+ * WhyTiles — four reasons-to-use tiles for the landing "Why Kvendra" section.
+ * Each tile links to /why (the developed manifesto page). Icons reuse the
+ * shared iconset (lock / kb-node / terminal / harness).
+ */
+import Icon from '../brand/Icon.astro';
+import type { IconName } from '../brand/icons';
+
+const tiles: { icon: IconName; title: string; blurb: string }[] = [
+  {
+    icon: 'lock',
+    title: 'Open-core',
+    blurb: 'The CLI, the KB engine and the skills are open source — read them, fork them, run them.',
+  },
+  {
+    icon: 'terminal',
+    title: 'Self-hostable',
+    blurb: 'Bring up your own single-tenant knowledge base; nothing has to leave your infrastructure.',
+  },
+  {
+    icon: 'kb-node',
+    title: 'Your Postgres/pgvector',
+    blurb: 'Knowledge lives in a database you control — relational data and the vector index in one store.',
+  },
+  {
+    icon: 'harness',
+    title: 'MCP-native',
+    blurb: 'Tools and the broker speak MCP, so your agent talks to Kvendra through an open protocol.',
+  },
+];
+---
+
+<div class="kvd-cards">
+  {
+    tiles.map((t) => (
+      <a class="kvd-card kvd-whytile" href="/why">
+        <span class="kvd-whytile__icon" aria-hidden="true">
+          <Icon name={t.icon} size={22} />
+        </span>
+        <h3>{t.title}</h3>
+        <p>{t.blurb}</p>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  .kvd-whytile {
+    display: flex;
+    flex-direction: column;
+  }
+  .kvd-whytile__icon {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-soft);
+    color: var(--fg);
+    margin-bottom: var(--sp-3);
+  }
+</style>
