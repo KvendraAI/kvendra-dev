@@ -32,16 +32,17 @@ const githubUrl = 'https://github.com/KvendraAI';
       <a class="kvd-btn" href={githubUrl}>View on GitHub</a>
     </div>
     <p class="kvd-hero__first-ten">
-      Your first 10 minutes — clone, install the plugin, run the wizard:
+      Your first 10 minutes — all inside Claude Code, no terminal:
     </p>
-    <pre class="kvd-hero__install"><code>{`# terminal
-git clone https://github.com/KvendraAI/kvendra-reference-stack
-cd kvendra-reference-stack
-
-# in Claude Code
+    <pre class="kvd-hero__install"><code>{`# in Claude Code
 /plugin marketplace add KvendraAI/kvendra-skills
 /plugin install kvendra-skills@kvendra-marketplace
 /setup self-hosted`}</code></pre>
+    <p class="kvd-hero__install-note">
+      You need Docker running. The wizard does the rest: it finds an existing
+      reference-stack clone or clones one for you, brings it up with local
+      embeddings, and wires Claude Code.
+    </p>
     <p class="kvd-hero__see-why">
       <a href="/use-cases/">See what you actually get out of it →</a>
     </p>
@@ -88,6 +89,12 @@ cd kvendra-reference-stack
     color: var(--phos-readable);
     margin-top: var(--sp-6);
     margin-bottom: var(--sp-2);
+  }
+  .kvd-hero__install-note {
+    color: var(--fog);
+    max-width: 60ch;
+    margin-top: var(--sp-3);
+    font-size: var(--fs-sm);
   }
   .kvd-hero__see-why {
     margin-top: var(--sp-4);

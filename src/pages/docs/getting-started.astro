@@ -4,7 +4,7 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
 <DocsLayout
   title="Getting started — Kvendra developer docs"
-  description="The Kvendra quickstart, one path: clone the reference stack, install the Skills plugin, and run the /setup wizard — it brings the stack up with local Ollama embeddings (no signup, 100% local), wires Claude Code over MCP and verifies it. Then onboard your project with /onboard-project and reach a first win."
+  description="The Kvendra quickstart, one path: install the Skills plugin and run the /setup wizard — it locates or clones the reference stack, brings it up with local Ollama embeddings (no signup, 100% local), wires Claude Code over MCP and verifies it. Then onboard your project with /onboard-project and reach a first win."
 >
   <span class="kvd-kicker">Getting Started</span>
   <h1>Quickstart</h1>
@@ -14,8 +14,8 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     meaning. We use the <strong>reference stack</strong> — the ready-made,
     everything-wired-together bundle — with local embeddings, so you get going
     with no signup and nothing leaving your machine. Everything below is
-    copy-paste: one clone, two plugin commands, and a wizard that does the
-    rest.
+    copy-paste, and all of it happens inside Claude Code: two plugin commands
+    and a wizard that does the rest.
   </p>
   <p>
     The recommended host is <strong>Claude Code</strong>, but anything that
@@ -81,20 +81,7 @@ git --version</code></pre>
     >.
   </p>
 
-  <h2>1. Get the stack</h2>
-  <p>
-    Clone the reference stack. That is the only thing the wizard cannot do for
-    you — everything else (first boot, configuration, wiring) is automated in
-    step 3:
-  </p>
-  <pre><code>{`git clone https://github.com/KvendraAI/kvendra-reference-stack
-cd kvendra-reference-stack`}</code></pre>
-  <p class="kvd-callout">
-    No config to edit: the first run creates <code>.env</code> from the example
-    on its own, and local embeddings are wired automatically.
-  </p>
-
-  <h2>2. Install the Skills</h2>
+  <h2>1. Install the Skills</h2>
   <p>
     Skills turn pipelines into one-command workflows. They install as a Claude
     Code plugin — and the plugin ships the <code>/setup</code> onboarding
@@ -103,20 +90,25 @@ cd kvendra-reference-stack`}</code></pre>
   <pre><code>/plugin marketplace add KvendraAI/kvendra-skills
 /plugin install kvendra-skills@kvendra-marketplace</code></pre>
 
-  <h2 id="connect-claude-code">3. Run <code>/setup</code> — the wizard does the rest</h2>
+  <h2 id="connect-claude-code">2. Run <code>/setup</code> — the wizard does the rest</h2>
   <p>
-    From the reference-stack directory, run the <code>/setup</code> skill and
-    pick <strong>self-hosted</strong>:
+    Run the <code>/setup</code> skill and pick <strong>self-hosted</strong>. It
+    works from anywhere — including a brand-new empty folder:
   </p>
   <pre><code>/setup self-hosted</code></pre>
   <p>
-    The wizard takes it from here: it brings the stack up with local embeddings
-    (Ollama running <code>mxbai-embed-large</code> — nothing leaves your
-    machine), waits for the engine to report healthy, reads the bearer token
-    out of the container, and registers the Platform as a distinct MCP server
-    named <code>kvendra-platform</code>. The bundled cloud server is left
-    untouched, and re-running <code>/setup</code> never duplicates a server —
-    it detects what is already registered and offers to re-verify instead.
+    The wizard takes it from here: it finds an existing reference-stack clone or
+    asks where to put one and clones it for you, then brings the stack up with
+    local embeddings (Ollama running <code>mxbai-embed-large</code> — nothing
+    leaves your machine), waits for the engine to report healthy, reads the
+    bearer token out of the container, and registers the Platform as a distinct
+    MCP server named <code>kvendra-platform</code>. The bundled cloud server is
+    left untouched, and re-running <code>/setup</code> never duplicates a server
+    — it detects what is already registered and offers to re-verify instead.
+  </p>
+  <p class="kvd-callout">
+    No config to edit: the first run creates <code>.env</code> from the example
+    on its own, and local embeddings are wired automatically.
   </p>
   <p class="kvd-callout">
     One step stays yours: activating a newly added MCP server needs a Claude
@@ -138,13 +130,14 @@ cd kvendra-reference-stack`}</code></pre>
     <a href="/docs/self-hosting/">Advanced install</a>.
   </p>
 
-  <h2>4. Onboard your project</h2>
+  <h2>3. Onboard your project</h2>
   <p>
     You are connected — now give your agent the structure to work against. The
     natural next step is not generic: it is to <strong>onboard your own
-    project</strong> into the knowledge base. The <code>/onboard-project</code>
-    skill does exactly that (<code>/setup</code> offers this chain itself when
-    it finishes):
+    project</strong> into the knowledge base. Run it in your own repo — the
+    reference stack is infrastructure, not your project. The
+    <code>/onboard-project</code> skill does exactly that (<code>/setup</code>
+    offers this chain itself when it finishes):
   </p>
   <pre><code>/onboard-project &lt;PROJECT_ID&gt;</code></pre>
   <p>
@@ -164,7 +157,7 @@ cd kvendra-reference-stack`}</code></pre>
     on every session now exists.
   </p>
 
-  <h2>5. Your first win</h2>
+  <h2>4. Your first win</h2>
   <p>
     With your project onboarded, your agent has the structured context it needs.
     Now see what it is <em>for</em> — this is the payoff, not the healthcheck. In
@@ -204,7 +197,7 @@ TXN-… committed`}</code></pre>
     project.)
   </p>
 
-  <h2>6. (Optional, and deferred) Add the CLI security broker</h2>
+  <h2>5. (Optional, and deferred) Add the CLI security broker</h2>
   <p class="kvd-callout">
     <strong>You do NOT need the CLI to start.</strong> Add it later only when you
     want your agent to run real ops (a git push, a deploy) without exposing your

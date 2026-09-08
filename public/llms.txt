@@ -45,6 +45,8 @@ cp .env.example .env
 ./scripts/up.sh --with-ollama
 ```
 
+(Interactive alternative for the user: with the Skills plugin installed — Step 4 — `/setup self-hosted` performs this clone and bring-up itself, from any directory.)
+
 `up.sh --with-ollama` brings the stack up, waits for the healthcheck, pulls the local embedding model `mxbai-embed-large`, and points the Platform at it — on its own. Its final output prints the endpoints:
 - platform healthz:  http://localhost:7777/healthz
 - platform MCP:      http://localhost:7777/mcp
@@ -67,7 +69,7 @@ Managed/cloud embeddings, and pointing embeddings at a provider by hand, are cov
 
 ## Step 3 — Connect Claude Code (MCP)
 
-As the agent, wire it directly with the commands below. (Interactive alternative for the user: with the Skills plugin installed — Step 4 — the `/setup` skill automates this step end-to-end: it detects the running Platform, extracts the token, registers the server, and verifies. It is idempotent — it never duplicates a server that is already registered.) The reference stack keeps the bearer token inside a NAMED Docker volume, so read it out of the container:
+As the agent, wire it directly with the commands below. (Interactive alternative for the user: with the Skills plugin installed — Step 4 — the `/setup` skill automates this step end-to-end: it locates an existing reference-stack clone or clones one itself, detects or brings up the running Platform, extracts the token, registers the server, and verifies. It is idempotent — it never duplicates a server that is already registered.) The reference stack keeps the bearer token inside a NAMED Docker volume, so read it out of the container:
 
 ```
 TOKEN=$(docker exec kvendra-ref-platform cat /data/auth.token)
@@ -100,7 +102,7 @@ Skills are a Claude Code plugin that turn pipelines into one-command workflows.
 /plugin install kvendra-skills@kvendra-marketplace
 ```
 
-NOTE: the published plugin ships wired to the hosted Kvendra Cloud by default. To use the skills against the LOCAL Platform from Step 1, a distinct `kvendra-platform` server must be registered — either the manual block from Step 3 (already done if this guide was followed in order), or the plugin's `/setup` skill (`/setup self-hosted`), which automates the same wiring and never duplicates an existing server. Activating a newly added MCP server requires a Claude Code restart or `/mcp reconnect kvendra-platform`. The skills call the exact same 14 tools, so they work identically once the local server is registered.
+NOTE: the published plugin ships wired to the hosted Kvendra Cloud by default. To use the skills against the LOCAL Platform from Step 1, a distinct `kvendra-platform` server must be registered — either the manual block from Step 3 (already done if this guide was followed in order), or the plugin's `/setup` skill (`/setup self-hosted`), which automates the same wiring — including locating or cloning the reference stack, so it can be run from any directory — and never duplicates an existing server. Activating a newly added MCP server requires a Claude Code restart or `/mcp reconnect kvendra-platform`. The skills call the exact same 14 tools, so they work identically once the local server is registered.
 
 Then confirm the wiring with the `/env-check` skill — it DIAGNOSES that the MCP is connected and reports the available tools and primitives (it does not configure anything):
 
