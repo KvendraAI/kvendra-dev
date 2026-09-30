@@ -36,27 +36,31 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </p>
     <ol>
       <li>
-        <strong>Bring up the Platform.</strong> Clone the preconfigured
-        reference stack (or <code>kvendra-platform</code> alone), start it with
-        Docker Compose, and confirm the health check on port <code>7777</code>.
-        The guide is explicit about reading the auth token the right way for
-        each path.
+        <strong>Check prerequisites.</strong> Docker with the daemon running,
+        Docker Compose v2, git and curl — and it tells you exactly what to
+        install if one is missing.
       </li>
       <li>
-        <strong>Choose embeddings.</strong> Run Ollama as a container for pure
-        self-hosting (recommended, nothing leaves your infrastructure), or use
-        the shipped hosted free-tier default, or a mock provider for CI.
+        <strong>Bring up the Platform.</strong> Reuse a reference-stack clone
+        you already have, or clone it, start it with <code>up.sh</code>, and
+        confirm the health check on port <code>7777</code>.
       </li>
       <li>
-        <strong>Connect Claude Code over MCP.</strong> Register the Platform as
-        an MCP server so the agent gains the 14 knowledge-base tools — the
-        agent wires it directly, or the <code>/setup</code> skill does the same
-        step interactively.
+        <strong>Choose embeddings.</strong> Ollama as a local container
+        (recommended, nothing leaves your machine), a Kvendra Cloud embeddings
+        key in <code>.env</code>, or a mock provider for CI.
       </li>
       <li>
-        <strong>Install the Skills.</strong> Add the Claude Code plugin — it
-        ships the <code>/setup</code> onboarding wizard that can do the whole
-        MCP wiring for you — then verify with <code>/env-check</code>.
+        <strong>Connect Claude Code over MCP.</strong> Read the token, register
+        the Platform with <code>claude mcp add --transport http</code>, ask you
+        to restart Claude Code once, and prove the connection with a real read
+        — which gives the agent the 14 knowledge-base tools.
+      </li>
+      <li>
+        <strong>Install the Skills and onboard.</strong> Add the Claude Code
+        plugin, onboard your project with
+        <code>/kvendra-skills:onboard-project</code>, and from then on work
+        with <code>/kvendra-skills:kvendra</code>.
       </li>
       <li>
         <strong>Optionally add the CLI broker.</strong> A zero-knowledge vault
@@ -70,7 +74,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <strong>optional and pre-alpha</strong> — Skills and the Platform work
       without it, and the guide marks it clearly so your agent does not treat it
       as required. Everything the guide references is open-core: the Platform is
-      AGPL, the CLI and Skills are Apache-2.0, and the reference stack is MIT.
+      AGPL, the CLI is Apache-2.0, the Skills are MIT, and the reference stack is
+      MIT.
     </p>
 
     <p>

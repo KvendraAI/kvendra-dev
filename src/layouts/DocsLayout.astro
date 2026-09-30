@@ -175,7 +175,7 @@ const here = Astro.url.pathname;
   /* Mobile: collapse the sidebar into a real disclosure. ------------------- */
   @media (max-width: 820px) {
     .kvd-docs {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--sp-5);
     }
     .kvd-docs__nav-wrap {

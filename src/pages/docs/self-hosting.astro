@@ -59,17 +59,17 @@ cd kvendra-platform && docker compose up -d</code></pre>
     </li>
   </ul>
   <p>
-    Then register the Platform with your agent. The
-    <a href="/docs/getting-started/#connect-claude-code"><code>/setup</code> wizard</a>
-    does all of this for you — what follows is the by-hand equivalent:
+    Then register the Platform with your agent — the same step as
+    <a href="/docs/getting-started/#connect-claude-code">Quickstart step 3</a>:
   </p>
-  <pre><code>{`TOKEN=$(docker exec kvendra-ref-platform cat /data/auth.token)
+  <pre><code>{`TOKEN=$(docker exec kvendra-ref-platform cat /data/auth.token)   # reference stack
+# Platform-only (bind-mount): TOKEN=$(cat ./data/auth.token)
 
-claude mcp add kvendra-platform http://localhost:7777/mcp \\
+claude mcp add --transport http kvendra-platform http://localhost:7777/mcp \\
   -H "Authorization: Bearer $TOKEN"`}</code></pre>
   <p>
     Or add the equivalent block to <code>.mcp.json</code> at your project root
-    (or <code>~/.claude/settings.json</code>):
+    (it holds your token, so keep it out of version control):
   </p>
   <pre><code>{`{
   "mcpServers": {
@@ -81,7 +81,7 @@ claude mcp add kvendra-platform http://localhost:7777/mcp \\
   }
 }`}</code></pre>
   <p>
-    Restart Claude Code (or run <code>/mcp reconnect kvendra-platform</code>)
+    Restart Claude Code (or reconnect it from <code>/mcp</code>)
     to activate it, then confirm by calling <code>whoami</code>. Once
     connected, the agent gains 14 MCP tools: <code>entity_get</code>,
     <code>entity_create</code>, <code>entity_update</code>,
@@ -198,7 +198,7 @@ EMBEDDINGS_MODEL=mxbai-embed-large`}</code></pre>
   <pre><code>{`# in .env — managed embeddings (e.g. Kvendra Cloud)
 EMBEDDINGS_PROVIDER=openai-compatible
 EMBEDDINGS_BASE_URL=https://api.kvendra.cloud/v1
-EMBEDDINGS_MODEL=mxbai-embed-large
+EMBEDDINGS_MODEL=kvendra-embedding-v1
 EMBEDDINGS_API_KEY=<your key>`}</code></pre>
   <p>
     After editing <code>.env</code>, re-run the stack (or restart the Platform
@@ -337,11 +337,11 @@ EMBEDDINGS_API_KEY=<your key>`}</code></pre>
       </tr>
       <tr>
         <td><code>OLLAMA_MODELS_PRELOAD</code></td>
-        <td><code>llama3.1:8b,mxbai-embed-large</code></td>
+        <td><code>mxbai-embed-large</code></td>
         <td
           >Comma-separated models <code>up.sh --with-ollama</code> pulls on first
-          run. Includes the embedding model; trim it if you only need
-          embeddings.</td
+          run. The default is just the embedding model; add more models (e.g. a
+          chat model) if you need them.</td
         >
       </tr>
       <tr>
