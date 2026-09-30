@@ -27,8 +27,16 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
     The recommended host is <strong>Claude Code</strong>, but anything that
     speaks the Model Context Protocol can drive Kvendra. Prefer to build it
     yourself, step by step — from source, or against your own Postgres? See
-    <a href="/docs/self-hosting/"><strong>Advanced install</strong></a>. Using
-    the hosted service instead? Follow
+    <a href="/docs/self-hosting/"><strong>Advanced install</strong></a>.
+  </p>
+  <!-- commercial-pointer:start self-host-decision -->
+  <p class="kvd-callout">
+    Don't want to run it yourself? Kvendra Cloud is the same open-core engine,
+    hosted and managed for you — <a href="https://kvendra.com/">kvendra.com →</a>
+  </p>
+  <!-- commercial-pointer:end -->
+  <p class="kvd-learn-more">
+    Already on the hosted service? Its setup guide is at
     <a href="https://app.kvendra.cloud/docs/" rel="noreferrer">app.kvendra.cloud/docs</a>.
   </p>
 
@@ -252,7 +260,7 @@ TXN-… committed`}</code></pre>
   <pre><code>cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra</code></pre>
   <p>
     It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven
-    primitives — git, github, npm, pypi, http and shell, with an
+    primitives — git, github, npm, pypi, aws, http and shell — plus an
     <code>unsafe.raw_token</code> escape hatch. Sensitive operations are routed
     through the broker so the model orchestrating the work never sees a raw
     token or key.

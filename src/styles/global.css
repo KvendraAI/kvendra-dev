@@ -1,8 +1,8 @@
 /* =============================================================================
  * kvendra.dev global styles.
  *
- * Tokens + reset are copied from kvendra-web (REL-KVD-WEB-0.6.x); this file is
- * a focused portal-specific layer (the kvendra-web global.css carries a large
+ * Tokens + reset are Copied from the Kvendra brand kit (v0.6.x); this file is
+ * a focused portal-specific layer (the brand kit global.css carries a large
  * amount of commercial-page styling that does not apply to the open docs site,
  * so it is adapted here using the same tokens rather than copied wholesale).
  * Self-hosted fonts are imported from BaseLayout via Fontsource.

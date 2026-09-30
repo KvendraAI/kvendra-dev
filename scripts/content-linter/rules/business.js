@@ -18,6 +18,20 @@ export const CATEGORY_LABEL = 'enterprise-business-paid';
 
 export const rules = [
   {
+    id: 'commercial-link',
+    description:
+      'Link/mention of the commercial surfaces (kvendra.com, kvendra.ai). ' +
+      'Allowed ONLY inside a marked commercial-pointer block (ADR-KVD-A24AB7 carve-out).',
+    regex: /\bkvendra\.(com|ai)\b/i,
+    escapable: false,
+  },
+  {
+    id: 'commercial-funnel-link',
+    description: 'Direct link into the hosted signup/billing funnel',
+    regex: /\bapp\.kvendra\.cloud\/(signup|pricing|billing|checkout|upgrade)\b/i,
+    escapable: false,
+  },
+  {
     id: 'private-repo-name',
     description: 'Private/closed repo name (kvendra-enterprise|helm|web)',
     regex: /\bkvendra-(enterprise|helm|web)\b/i,

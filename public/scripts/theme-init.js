@@ -1,4 +1,4 @@
-/* Copied from kvendra-web (REL-KVD-WEB-0.6.x).
+/* Copied from the Kvendra brand kit (v0.6.x).
  *
  * Kvendra theme-init — runs BEFORE first paint to apply the user's theme.
  *

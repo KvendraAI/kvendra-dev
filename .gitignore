@@ -8,9 +8,12 @@ node_modules/
 .astro/
 
 # KB cache directory — transient fetch artifacts are not committed...
-src/content/.kb-cache/
+# (ignore the directory's CONTENTS, not the directory: git cannot re-include a
+# file whose parent directory is excluded)
+src/content/.kb-cache/*
 # ...except the reproducible, hand-vetted offline dump, which IS committed so
 # the build is deterministic without a live MCP connection (see scripts/kb-fetch.mjs).
+# The content linter scans it on every build.
 !src/content/.kb-cache/kb-dump.json
 
 # OS / editor

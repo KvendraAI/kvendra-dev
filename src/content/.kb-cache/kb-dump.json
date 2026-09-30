@@ -1,0 +1,202 @@
+{
+  "_note": "Offline, hand-vetted dump of the allowlisted open-core Kvendra KB sources. Produced by reading exactly the entities in scripts/kb-fetch.mjs ALLOWLIST via the Kvendra MCP tools, then pruning anything outside the open-core content policy. Committed so the build is reproducible without a live connection. Refreshed 2026-09-30: CLI primitives aligned with kvendra-cli source (adds kvendra.aws).",
+  "generatedAt": "2026-05-29",
+  "entities": {
+    "CMP-KVD-CLI": {
+      "entity_id": "CMP-KVD-CLI",
+      "entity_type": "CMP",
+      "title": "Kvendra CLI",
+      "license": "Apache-2.0",
+      "language": "Rust (edition 2024, MSRV 1.85+)",
+      "binary": "kvendra",
+      "version": "0.5.0",
+      "summary": "The kvendra CLI is a Rust binary: a foundational security layer that is optional to get started. It is a zero-knowledge local vault (Level 2) plus an MCP capability broker, an HMAC-signed audit log, a detection layer and a TUI — you add it when you want your agent to run real operations without exposing your tokens.",
+      "primitives": [
+        {
+          "id": "kvendra.git",
+          "ops": [
+            "clone",
+            "push",
+            "pull",
+            "commit",
+            "tag"
+          ],
+          "note": "SSH-only authentication by threat model — no inline tokens."
+        },
+        {
+          "id": "kvendra.github",
+          "ops": [
+            "read_repo",
+            "read_issue",
+            "update_issue",
+            "update_repo",
+            "release",
+            "add_topics",
+            "create_issue",
+            "list_issues"
+          ],
+          "note": "Read ops are auth-light; create_issue is destructive and body-sanitized."
+        },
+        {
+          "id": "kvendra.npm",
+          "ops": [
+            "publish",
+            "deprecate",
+            "read_metadata"
+          ],
+          "note": "Package registry operations."
+        },
+        {
+          "id": "kvendra.pypi",
+          "ops": [
+            "upload",
+            "read_metadata"
+          ],
+          "note": "Python package registry operations."
+        },
+        {
+          "id": "kvendra.aws",
+          "ops": [
+            "s3_sync",
+            "s3_cp",
+            "cloudfront_invalidate",
+            "lambda_invoke"
+          ],
+          "note": "Cloud operations (object sync/copy, CDN cache invalidation, function invoke) with vault-injected credentials."
+        },
+        {
+          "id": "kvendra.http",
+          "ops": [
+            "request"
+          ],
+          "note": "A single generic outbound HTTP request primitive."
+        },
+        {
+          "id": "kvendra.shell",
+          "ops": [
+            "exec"
+          ],
+          "note": "Run an allowlisted shell command."
+        }
+      ],
+      "primitives_open_core_count": 7,
+      "escape_hatch": "kvendra.unsafe.raw_token — an audit-marked escape hatch, always flagged unsafe in the audit log.",
+      "introspection": "kvendra capabilities (and --pretty) emits a canonical JSON manifest of the broker's primitive surface: broker_version, schema_version, and each primitive with its ops, destructive ops and vault profile pattern. Auth-less, read-only, no vault unlock required.",
+      "vault_layout": "The vault lives in a per-user home directory and holds: a config file (HMAC sidecar), a SQLite audit database (WAL, HMAC-chained), Argon2id-hashed recovery codes, a sentinel blob, AES-256-GCM secret blobs per profile, and HMAC-signed allowlist YAMLs per profile.",
+      "crypto": "Argon2id KDF, AES-256-GCM AEAD, an HMAC chain over the audit log, a sentinel blob and recovery codes.",
+      "modes": "Local (default): zero-knowledge vault, secrets resolved locally. A remote-broker resolver mode exists for hosted deployments via OIDC PKCE login."
+    },
+    "CMP-KVD-PLATFORM": {
+      "entity_id": "CMP-KVD-PLATFORM",
+      "entity_type": "CMP",
+      "title": "Kvendra Platform",
+      "license": "AGPL-3.0",
+      "language": "TypeScript (Node 20.x)",
+      "stack": "Fastify HTTP server + PostgreSQL 16 + pgvector",
+      "version": "0.1.0-alpha.0 (M1 alpha skeleton)",
+      "summary": "The open knowledge-base engine: a single-tenant KB you self-host. A developer brings it up with docker-compose to get their own complete local KB — Postgres + pgvector + engine + skills runtime.",
+      "scope": [
+        "The KB engine: 20 entity types, the entity + transaction + typed server-side changelog model, relations, history, transactions.",
+        "Pluggable embeddings (bring-your-own provider).",
+        "Basic auth: static HTTP token / API key.",
+        "Self-host stack: docker-compose + multi-stage Dockerfile.",
+        "Public engine API: an MCP server over JSON-RPC (Fastify), moving to a streaming HTTP transport."
+      ],
+      "single_tenant_by_design": true,
+      "embeddings": "Semantic search over your content via pgvector; the embeddings provider is configurable, so the same data and search behave consistently whichever provider you pick.",
+      "search": "Search ranks entities by semantic similarity, so a query finds the right thing by meaning rather than by exact keyword match."
+    },
+    "CMP-KVD-SKILLS": {
+      "entity_id": "CMP-KVD-SKILLS",
+      "entity_type": "CMP",
+      "title": "Kvendra Skills",
+      "license": "MIT",
+      "format": "Claude Code plugin (markdown prompts; no runtime code)",
+      "source_language": "English (canonical)",
+      "summary": "The official Claude Code plugin that materializes the skills layer: the single set of skills for the project, distributed as a markdown plugin through a public marketplace. It is the join point that orchestrates the CLI and the KB.",
+      "design_principle": "Most skills run on the Platform alone — planning, drafting entities in a transaction, assembling a changelog are pure knowledge-base operations. The optional CLI broker is required only by skills that perform sensitive system operations (a git push, a deploy), where it routes the operation so the language model never sees a raw token or key. You can fork the open-source skills to change which steps use the broker.",
+      "v2_direction": [
+        "A single set of skills for Claude Code (the parallel community track is deprecated).",
+        "English as the source language; user-facing output follows the language declared in the project config.",
+        "Thin, KB/STD-driven skills: tech-specific recipes live in KB STD entities, not hardcoded in the skill markdown."
+      ],
+      "catalog_v1": {
+        "pipelines": [
+          "new-feature",
+          "bug",
+          "release-manager",
+          "incident-manager",
+          "regression"
+        ],
+        "subagents": [
+          "planner",
+          "implementer",
+          "validator",
+          "tester",
+          "analyzer",
+          "updater",
+          "interface-validator",
+          "functional-expert"
+        ],
+        "documentation": [
+          "manual-writer",
+          "doc-indexer"
+        ],
+        "setup_meta": [
+          "onboard-project",
+          "sync-claudemd",
+          "lint-claudemd",
+          "env-check",
+          "kvendra",
+          "to-do",
+          "to-do-summary",
+          "requirements-analyst",
+          "changelog",
+          "user-help",
+          "version"
+        ],
+        "deploy": [
+          "deploy"
+        ]
+      },
+      "llm_target": "Any LLM that Claude Code supports."
+    },
+    "DOC-KVD-A2AC97": {
+      "entity_id": "DOC-KVD-A2AC97",
+      "entity_type": "DOC",
+      "title": "Kvendra architecture model (open-core sections only)",
+      "_pruning_note": "Open-core technical sections only; everything outside the open-core content policy has been removed.",
+      "components": [
+        {
+          "name": "Kvendra CLI",
+          "role": "zero-knowledge local vault + capability broker",
+          "license": "Apache-2.0"
+        },
+        {
+          "name": "Kvendra Platform",
+          "role": "self-hosted single-tenant KB engine",
+          "license": "AGPL-3.0"
+        },
+        {
+          "name": "Kvendra Skills",
+          "role": "Claude Code plugin that orchestrates CLI + KB",
+          "license": "MIT"
+        }
+      ],
+      "topology": "The open pieces operate independently and can be used separately. Skills are the join point: they orchestrate the CLI (for sensitive operations, so the LLM never sees secrets) and the KB (for knowledge). The obligation to run the CLI comes from the skills' security design, not from a product restriction.",
+      "edges_open": [
+        "Skills -> CLI (mandatory by security): no sensitive operation runs directly; everything goes through the broker.",
+        "Skills -> KB: each project talks to one KB engine."
+      ],
+      "self_host": "A developer can run the open engine entirely locally (self-hosted, single-tenant) and point the skills at it. Identity is the local user; no remote multi-actor coordination is required for the open path.",
+      "wire_contract": "The normalized context shape downstream of the KB engine is uniform: in self-hosted mode the identity source is 'local' with no tokens. This lets skills operate agnostic of the deployment mode — they consume the same contract."
+    }
+  },
+  "helpTopics": {
+    "entity_types": "Kvendra models knowledge as typed entities. The first-class types are: PRJ (project), CMP (component), IF (interface), REQ (requirement), TEST, REG (regression suite), ISSUE, REL (release), SLA, ROAD (roadmap), GLO (glossary), STD (standard/playbook), PAT (pattern/lesson), ADR (architecture decision record), RUN, UX, DOC (documentation), ENV (environment), COST, plus CFG (config). On transaction activation each type lands on a terminal status: 'active' for most, 'open' for ISSUE, 'accepted' for ADR, 'recorded' for RUN/ENV.",
+    "naming": "Ids are stable and human-readable. PRJ-<PROJECT>, CMP-<PROJECT>-<COMP> and REL-<PROJECT>[-<COMP>]-<X.Y.Z> accept an explicit id. Every other type gets an auto id of the form <TYPE>-<PROJECT>[-<COMP>]-<6HEX>. Transaction ids look like TXN-<PROJECT>-<YYYYMMDD>-<NNN>. STD entities follow STD-<PROJECT>-<COMP?>-<TOPIC>.",
+    "txn": "Changes are grouped into a transaction (TXN). The flow: create the TXN; for each phase, create entities carrying the txn id so the server forces them to 'draft' status; on success, activate the TXN so the drafts move to their terminal status; on failure, cancel the TXN so the drafts become 'cancelled'. Before starting, you check for an interrupted TXN to avoid duplicates.",
+    "embeddings": "An embedding is a fixed-length vector that captures the meaning of an entity's text. Kvendra ships a wire-stable embedding (1024 dimensions, L2-normalized) under a stable alias, so the vector shape stays constant even if the underlying provider changes. A deterministic mock provider is used in staging; a hosted model is the production target.",
+    "validation": "The engine validates entity ids against the naming rules, validates relation targets, and enforces transaction state. Typical conflicts: a duplicate TXN (resolved by checking for an interrupted TXN first), or operating on an already-cancelled or already-completed TXN (re-read the state)."
+  }
+}

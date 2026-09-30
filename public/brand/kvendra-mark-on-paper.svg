@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copied from kvendra-web (REL-KVD-WEB-0.6.x). -->
+<!-- Copied from the Kvendra brand kit (v0.6.x). -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="320" height="320"><rect width="32" height="32" fill="#F2F0EB"></rect><g transform="translate(4 4)"><polygon points="4,21 4,12 13,3 15,3 6,12 6,21" fill="#0A0B0D"></polygon><polygon points="4,3 6,3 6,8.5 4,10.5" fill="#0A0B0D"></polygon><polygon points="14.584,20.672 6.685,13.307 7.913,11.990 17.128,20.584" fill="#7DC42A"></polygon></g></svg>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copied from kvendra-web (REL-KVD-WEB-0.6.x). -->
+<!-- Copied from the Kvendra brand kit (v0.6.x). -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" width="480" height="96" role="img" aria-label="Kvendra wordmark">
   <title>Kvendra</title>
   <text x="0" y="34" fill="#F2F0EB" font-family="&#39;Space Grotesk&#39;, system-ui, sans-serif" font-size="32" font-weight="600" letter-spacing="-1.4">kvendra</text>

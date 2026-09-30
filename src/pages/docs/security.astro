@@ -33,8 +33,8 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 
     <h2>The broker and signed allowlists</h2>
     <p>
-      The CLI exposes capabilities as primitives (git, github, npm, pypi, http,
-      shell). A caller asks the broker to run an operation; it never receives the
+      The CLI exposes capabilities as seven primitives (git, github, npm, pypi,
+      aws, http, shell). A caller asks the broker to run an operation; it never receives the
       secret. Each profile carries an allowlist that is itself HMAC-signed, so a
       request is only honoured if it matches a signed entry. This turns "please
       do not leak tokens" from a guideline into an enforced boundary.

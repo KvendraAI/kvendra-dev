@@ -1,8 +1,20 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 
-// The docs overview. Mirrors the docs sidebar order (Platform-first); this is
-// the destination of the landing's [Get Started] and "How it fits together".
+// The docs index. Mirrors the docs sidebar order (Platform-first). The
+// narrative of how the pieces fit lives on /how-it-works/ — linked, not repeated.
+const startHere = [
+  { href: '/docs/getting-started/', title: 'Quickstart', blurb: 'The self-hosted golden path: reference stack, Skills, connect Claude Code, onboard your project.' },
+  { href: '/install-with-ai/', title: 'Install with your AI', blurb: 'Let Claude Code read llms.txt and run the Quickstart for you.' },
+  { href: '/docs/self-hosting/', title: 'Advanced install', blurb: 'Step by step: engine only, your own Postgres, build from source, every setting.' },
+];
+
+const concepts = [
+  { href: '/how-it-works/', title: 'How it works', blurb: 'How the Platform, the Skills and the CLI are wired together over MCP.' },
+  { href: '/principles/', title: 'Principles', blurb: 'The design stances behind the project.' },
+  { href: '/use-cases/', title: 'Use cases', blurb: 'What you get out of it, day to day.' },
+];
+
 const categories = [
   {
     label: 'KB Engine (the required core)',
@@ -39,24 +51,26 @@ const categories = [
 
 <DocsLayout
   title="Documentation — Kvendra developer docs"
-  description="The Kvendra developer documentation: the CLI and its security model, the self-hostable KB engine, pipelines and the skills plugin — every page generated from the Kvendra knowledge base."
+  description="The Kvendra developer documentation index: install and self-host, the KB engine and its entity model, the Skills plugin, pipelines, and the optional CLI and its security model."
 >
   <span class="kvd-kicker">Documentation</span>
-  <h1>How it fits together</h1>
+  <h1>Documentation</h1>
   <p>
-    At the core is <strong>Kvendra Platform</strong> — a self-hostable
-    knowledge-base engine your agent can query, and the one piece that is
-    required. <strong>Skills</strong> are your day-to-day: pipelines that run as
-    one-command workflows on top of the Platform. The <strong>CLI</strong> is a
-    foundational security layer that is optional to get started — add it when you
-    want your agent to run real operations without exposing your tokens.
+    Everything you need to run open-core Kvendra yourself and understand how it
+    works. New here? Start with the <a href="/docs/getting-started/">Quickstart</a>.
+    For the big picture first, read <a href="/how-it-works/">How it works</a>.
   </p>
-  <p>
-    Read it as a journey: stand up the Platform, do real work through the Skills,
-    then reach for the CLI when you need brokered ops. New here? The
-    <a href="/docs/getting-started/">Quickstart</a> is the golden path, in order,
-    ending in a first win.
-  </p>
+
+  <section>
+    <h2>Start here</h2>
+    <ul>
+      {startHere.map((item) => (
+        <li>
+          <a href={item.href}>{item.title}</a> — {item.blurb}
+        </li>
+      ))}
+    </ul>
+  </section>
 
   {
     categories.map((cat) => (
@@ -73,4 +87,15 @@ const categories = [
       </section>
     ))
   }
+
+  <section>
+    <h2>Concepts</h2>
+    <ul>
+      {concepts.map((item) => (
+        <li>
+          <a href={item.href}>{item.title}</a> — {item.blurb}
+        </li>
+      ))}
+    </ul>
+  </section>
 </DocsLayout>

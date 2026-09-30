@@ -53,8 +53,8 @@ any other source is ignored with a warning.
 ## Design system
 
 The brand tokens, atoms (mark / wordmark / lockup / icons), SVGs and the
-anti-FOUC theme script are **copied** (not submoduled) from kvendra-web
-(`REL-KVD-WEB-0.6.x`). Each copied file carries a header noting its origin.
+anti-FOUC theme script are **copied** (not submoduled) from the Kvendra brand
+kit (v0.6.x). Each copied file carries a header noting its origin.
 
 ## Licensing
 

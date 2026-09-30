@@ -14,6 +14,7 @@ The broker exposes 7 open-core primitives. Each primitive receives an injected s
 | `kvendra.github` | read_repo, read_issue, update_issue, update_repo, release, add_topics, create_issue, list_issues | Read ops are auth-light; create_issue is destructive and body-sanitized. |
 | `kvendra.npm` | publish, deprecate, read_metadata | Package registry operations. |
 | `kvendra.pypi` | upload, read_metadata | Python package registry operations. |
+| `kvendra.aws` | s3_sync, s3_cp, cloudfront_invalidate, lambda_invoke | Cloud operations (object sync/copy, CDN cache invalidation, function invoke) with vault-injected credentials. |
 | `kvendra.http` | request | A single generic outbound HTTP request primitive. |
 | `kvendra.shell` | exec | Run an allowlisted shell command. |
 

@@ -1,0 +1,183 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Public repositories and their issue trackers. Only links verified to exist
+// (GitHub Discussions is not enabled on these repos, so it is not linked).
+const repos = [
+  {
+    name: 'kvendra-platform',
+    what: 'The knowledge-base engine (Kvendra Platform).',
+    license: 'AGPL-3.0',
+  },
+  {
+    name: 'kvendra-reference-stack',
+    what: 'The ready-made self-hosted bundle used by the Quickstart.',
+    license: 'MIT',
+  },
+  {
+    name: 'kvendra-skills',
+    what: 'The Claude Code plugin with the Skills.',
+    license: 'MIT',
+  },
+  {
+    name: 'kvendra-cli',
+    what: 'The optional CLI: vault and capability broker.',
+    license: 'Apache-2.0',
+  },
+  {
+    name: 'kvendra-dev',
+    what: 'This site: docs and llms.txt.',
+    license: 'MIT + CC-BY-4.0',
+  },
+];
+
+const gh = (repo: string, path = '') => `https://github.com/KvendraAI/${repo}${path}`;
+---
+
+<BaseLayout
+  title="Community — Kvendra developer docs"
+  description="How to get help with open-core Kvendra, report a bug, propose a change or report a security issue: the public GitHub repositories and their issue trackers."
+>
+  <article class="kvd-prose">
+    <span class="kvd-kicker">Community</span>
+    <h1>Community</h1>
+    <p>
+      Kvendra's open-core pieces are developed in the open on GitHub. That is
+      where you ask questions, report bugs and propose changes — one issue
+      tracker per repository.
+    </p>
+
+    <h2 id="ask">Ask a question or report a bug</h2>
+    <p>
+      Open an issue in the repository closest to your problem. Not sure which
+      one? If it happened while following the Quickstart, start with
+      <a href={gh('kvendra-reference-stack', '/issues')}>kvendra-reference-stack</a>.
+    </p>
+    <div class="kvd-table-wrap">
+      <table class="kvd-community__repos">
+        <thead>
+          <tr>
+            <th scope="col">Repository</th>
+            <th scope="col">What it is</th>
+            <th scope="col">License</th>
+            <th scope="col">Issues</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            repos.map((r) => (
+              <tr>
+                <td>
+                  <a href={gh(r.name)}>
+                    <code>{r.name}</code>
+                  </a>
+                </td>
+                <td>{r.what}</td>
+                <td>{r.license}</td>
+                <td>
+                  <a href={gh(r.name, '/issues')}>Open issues →</a>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p>A good report says what you ran, what you expected and what happened:</p>
+    <ul>
+      <li>the exact command or prompt, and the full error text;</li>
+      <li>
+        versions — <code>docker compose version</code>, the plugin version from
+        <code>/kvendra-skills:version</code>, and <code>kvendra --version</code>
+        if you use the CLI;
+      </li>
+      <li>
+        the output of <code>curl http://localhost:7777/healthz</code> for engine
+        problems.
+      </li>
+    </ul>
+    <p class="kvd-callout">
+      Never paste tokens, keys or the contents of your <code>.env</code> into an
+      issue. Issues are public.
+    </p>
+
+    <h2 id="contribute">Contribute</h2>
+    <p>
+      Fixes and improvements are welcome. For anything bigger than a typo, open
+      an issue first so the approach can be agreed before you write the code.
+    </p>
+    <ul>
+      <li>
+        <strong>Skills</strong> have a contribution guide covering conventions
+        and templates:
+        <a href={gh('kvendra-skills', '/blob/main/CONTRIBUTING.md')}>CONTRIBUTING.md</a>.
+      </li>
+      <li>
+        <strong>Platform, reference stack and CLI</strong>: open an issue
+        describing the change, then a pull request against <code>main</code>.
+      </li>
+      <li>
+        <strong>These docs</strong>: open an issue or a pull request on
+        <a href={gh('kvendra-dev')}>kvendra-dev</a>.
+      </li>
+    </ul>
+
+    <h2 id="security">Report a security issue</h2>
+    <p>
+      Do not open a public issue for a vulnerability. Follow the private
+      reporting instructions in the repository's security policy:
+      <a href={gh('kvendra-platform', '/blob/main/SECURITY.md')}>Platform</a>,
+      <a href={gh('kvendra-cli', '/blob/main/SECURITY.md')}>CLI</a>,
+      <a href={gh('kvendra-skills', '/blob/main/SECURITY.md')}>Skills</a>.
+    </p>
+
+    <h2 id="support">Support</h2>
+    <p>
+      Help here comes from the maintainers and other users, on GitHub, as time
+      allows. Most setup questions are already answered in the
+      <a href="/docs/getting-started/">Quickstart</a> and
+      <a href="/docs/self-hosting/">Advanced install</a>.
+    </p>
+    <!-- commercial-pointer:start community-support -->
+    <p class="kvd-callout">
+      Community support is free and best-effort. Email support comes with paid
+      Kvendra Cloud plans — <a href="https://kvendra.com/support/">kvendra.com/support →</a>
+    </p>
+    <!-- commercial-pointer:end -->
+  </article>
+</BaseLayout>
+
+<style>
+  .kvd-table-wrap {
+    overflow-x: auto;
+    margin: var(--sp-4) 0;
+  }
+  .kvd-community__repos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+  .kvd-community__repos th,
+  .kvd-community__repos td {
+    text-align: left;
+    vertical-align: top;
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .kvd-community__repos th {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--phos-readable);
+  }
+  .kvd-community__repos td:last-child {
+    white-space: nowrap;
+  }
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

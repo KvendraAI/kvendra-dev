@@ -1,5 +1,5 @@
 /**
- * Kvendra iconset (K-009) — copied from kvendra-web (REL-KVD-WEB-0.6.x).
+ * Kvendra iconset (K-009) — Copied from the Kvendra brand kit (v0.6.x).
  * 24x24 stroke-only SVG fragments, stroke-width 1.5, square caps, miter joins.
  * Phos accent only on "harness". Inner-XML stored as strings for <Fragment set:html>.
  */

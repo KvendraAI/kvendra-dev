@@ -219,7 +219,7 @@ The CLI is OPTIONAL and PRE-ALPHA. Skills and the Platform work without it. Add 
 cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra
 ```
 
-It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven primitives (git, github, npm, pypi, http, shell) with an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
+It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven primitives (git, github, npm, pypi, aws, http, shell) plus an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
 
 ## Advanced / step-by-step (deferred)
 

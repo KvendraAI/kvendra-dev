@@ -3,7 +3,7 @@
  * BaseLayout — the single page shell for kvendra.dev.
  *
  * - Dual dark/light theme. Default dark; [data-theme="light"] flips the palette.
- * - Anti-FOUC: /scripts/theme-init.js (copied from kvendra-web, REL-KVD-WEB-0.6.x)
+ * - Anti-FOUC: /scripts/theme-init.js (copied from the Kvendra brand kit, v0.6.x)
  *   runs synchronously in <head> before first paint, setting data-theme from
  *   localStorage.kvendra-theme before any pixel is drawn.
  * - Theme toggle in the header persists the choice to localStorage.
@@ -36,13 +36,16 @@ const productItems = [
   { href: '/docs/platform/', label: 'KB Engine' },
   { href: '/docs/skills/', label: 'Skills for AI agents' },
   { href: '/docs/cli/', label: 'CLI & Broker' },
-  { href: '/how-it-works/', label: 'How it fits together' },
+  { href: '/how-it-works/', label: 'How it works' },
   { href: '/use-cases/', label: 'Use cases' },
   { href: '/principles/', label: 'Principles' },
 ];
 
-// Community menu — points at the public GitHub org for now.
+// Community menu — the community hub plus the public GitHub org.
 const communityItems = [
+  { href: '/community/', label: 'Community hub' },
+  { href: '/community/#ask', label: 'Ask or report an issue' },
+  { href: '/community/#contribute', label: 'Contribute' },
   { href: 'https://github.com/KvendraAI', label: 'GitHub org' },
 ];
 
@@ -100,6 +103,7 @@ const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
             <a href="/use-cases/">Use cases</a>
             <a href="/principles/">Principles</a>
             <a href="/docs/getting-started/">Get Started</a>
+            <a href="/community/">Community</a>
           </nav>
           <span>
             Code: MIT · Content:
@@ -107,7 +111,9 @@ const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
               >CC-BY-4.0</a
             >
             ·
-            <a href="https://kvendra.com">See the product →</a>
+            <!-- commercial-pointer:start site-footer -->
+            <a href="https://kvendra.com/">See the product →</a>
+            <!-- commercial-pointer:end -->
           </span>
         </div>
       </footer>
