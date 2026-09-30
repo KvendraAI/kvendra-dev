@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// Public repositories and their issue trackers. Only links verified to exist
-// (GitHub Discussions is not enabled on these repos, so it is not linked).
+// Public repositories with their Discussions and issue trackers (both verified
+// enabled on all five repos, 2026-09-30).
 const repos = [
   {
     name: 'kvendra-platform',
@@ -36,22 +36,24 @@ const gh = (repo: string, path = '') => `https://github.com/KvendraAI/${repo}${p
 
 <BaseLayout
   title="Community — Kvendra developer docs"
-  description="How to get help with open-core Kvendra, report a bug, propose a change or report a security issue: the public GitHub repositories and their issue trackers."
+  description="How to get help with open-core Kvendra, report a bug, propose a change or report a security issue: the public GitHub repositories, their Discussions and issue trackers."
 >
   <article class="kvd-prose">
     <span class="kvd-kicker">Community</span>
     <h1>Community</h1>
     <p>
       Kvendra's open-core pieces are developed in the open on GitHub. That is
-      where you ask questions, report bugs and propose changes — one issue
-      tracker per repository.
+      where you ask questions, report bugs and propose changes — each
+      repository has its own Discussions and issue tracker.
     </p>
 
     <h2 id="ask">Ask a question or report a bug</h2>
     <p>
-      Open an issue in the repository closest to your problem. Not sure which
-      one? If it happened while following the Quickstart, start with
-      <a href={gh('kvendra-reference-stack', '/issues')}>kvendra-reference-stack</a>.
+      <strong>Questions, ideas and "how do I…?"</strong> go to Discussions.
+      <strong>Bugs</strong> — something that is broken and reproducible — go to
+      Issues. Use the repository closest to your problem. Not sure which one? If
+      it happened while following the Quickstart, start with
+      <a href={gh('kvendra-reference-stack', '/discussions')}>kvendra-reference-stack</a>.
     </p>
     <div class="kvd-table-wrap">
       <table class="kvd-community__repos">
@@ -60,7 +62,8 @@ const gh = (repo: string, path = '') => `https://github.com/KvendraAI/${repo}${p
             <th scope="col">Repository</th>
             <th scope="col">What it is</th>
             <th scope="col">License</th>
-            <th scope="col">Issues</th>
+            <th scope="col">Ask</th>
+            <th scope="col">Report</th>
           </tr>
         </thead>
         <tbody>
@@ -75,7 +78,10 @@ const gh = (repo: string, path = '') => `https://github.com/KvendraAI/${repo}${p
                 <td>{r.what}</td>
                 <td>{r.license}</td>
                 <td>
-                  <a href={gh(r.name, '/issues')}>Open issues →</a>
+                  <a href={gh(r.name, '/discussions')}>Discussions →</a>
+                </td>
+                <td>
+                  <a href={gh(r.name, '/issues')}>Issues →</a>
                 </td>
               </tr>
             ))
