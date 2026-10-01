@@ -58,16 +58,17 @@ import PlatformFacts from '../../content/generated/platform-facts.mdx';
       Something has to turn text into those vectors, and that is the one knob you
       may care about when installing — a single setting,
       <code>EMBEDDINGS_PROVIDER</code>, picks where it happens. There are three
-      modes:
+      options:
     </p>
     <ul>
       <li>
-        <strong>Ollama (recommended)</strong> — vectors are computed by a model
+        <strong>Ollama (default)</strong> — vectors are computed by a model
         you run yourself, so nothing about your text leaves your infrastructure.
       </li>
       <li>
-        <strong>Kvendra Cloud free-tier</strong> — a hosted endpoint computes
-        them for you. Zero setup, when you would rather not run a model locally.
+        <strong>Your own OpenAI-compatible provider</strong> — any
+        <code>/embeddings</code> endpoint you already run or subscribe to, as
+        long as it returns 1024-dimension vectors.
       </li>
       <li>
         <strong>Mock</strong> — deterministic stub vectors, for CI and tests
@@ -75,9 +76,9 @@ import PlatformFacts from '../../content/generated/platform-facts.mdx';
       </li>
     </ul>
     <p>
-      The vector shape is wire-stable under a fixed alias, so the provider is an
-      operational choice, not a lock-in: stored data and semantic search behave
-      the same whichever mode you pick.
+      Every option stores the same 1024-dimension vector shape, but vectors from
+      different models do not mix: pick a provider before you store knowledge,
+      because switching later means re-embedding the corpus.
     </p>
 </DocsLayout>
 

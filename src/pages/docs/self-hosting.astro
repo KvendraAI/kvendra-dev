@@ -181,24 +181,31 @@ cosign verify-attestation "$IMG" \\
     fail at request time.
   </p>
   <p>
-    The Quickstart's <code>--with-ollama</code> sets these for you. If you are
-    not using that flag — running the engine on its own, or against an existing
-    Ollama you manage — point embeddings at the local container by hand:
+    The reference stack's <code>.env.example</code> already points at the local
+    Ollama container, which <code>./scripts/up.sh</code> starts by default. If
+    you run the engine on its own, or against an existing Ollama you manage,
+    point embeddings at it by hand:
   </p>
   <pre><code>{`# in .env
 EMBEDDINGS_PROVIDER=openai-compatible
 EMBEDDINGS_BASE_URL=http://kvendra-ollama:11434/v1
 EMBEDDINGS_MODEL=mxbai-embed-large`}</code></pre>
   <p>
-    To use managed embeddings instead of running a model locally, point the same
-    <code>openai-compatible</code> provider at a hosted endpoint and supply a key.
-    For Kvendra Cloud embeddings that is the cloud base URL plus an
-    <code>EMBEDDINGS_API_KEY</code>:
+    To use your own embeddings provider instead of running a model locally,
+    point the same <code>openai-compatible</code> provider at any
+    OpenAI-compatible <code>/embeddings</code> endpoint and supply a key if it
+    needs one. The engine sends only the model and the input — it does not
+    request a <code>dimensions</code> size — so the model must return
+    1024-dimension vectors natively (for example <code>mxbai-embed-large</code>
+    or <code>bge-large-en-v1.5</code> served by vLLM or TEI, or
+    <code>mistral-embed</code>), or sit behind a gateway such as LiteLLM that
+    pins the output to 1024. With the reference stack, start it with
+    <code>./scripts/up.sh --no-ollama</code> so the local container is skipped.
   </p>
-  <pre><code>{`# in .env — managed embeddings (e.g. Kvendra Cloud)
+  <pre><code>{`# in .env — your own OpenAI-compatible provider
 EMBEDDINGS_PROVIDER=openai-compatible
-EMBEDDINGS_BASE_URL=https://api.kvendra.cloud/v1
-EMBEDDINGS_MODEL=kvendra-embedding-v1
+EMBEDDINGS_BASE_URL=https://<your-provider>/v1
+EMBEDDINGS_MODEL=<a 1024-dim model>
 EMBEDDINGS_API_KEY=<your key>`}</code></pre>
   <p>
     After editing <code>.env</code>, re-run the stack (or restart the Platform
@@ -207,8 +214,8 @@ EMBEDDINGS_API_KEY=<your key>`}</code></pre>
   <p class="kvd-callout">
     Embeddings are model-specific: vectors are not portable across models (a
     property of embedding spaces, not a Kvendra limitation). Pick a model and
-    stay on it — switching models, or moving a corpus to a managed provider on a
-    different model, means re-embedding the corpus.
+    stay on it — switching models or providers, even between two 1024-dim
+    ones, means re-embedding the corpus.
   </p>
   <table class="kvd-env-table">
     <thead>
@@ -339,8 +346,8 @@ EMBEDDINGS_API_KEY=<your key>`}</code></pre>
         <td><code>OLLAMA_MODELS_PRELOAD</code></td>
         <td><code>mxbai-embed-large</code></td>
         <td
-          >Comma-separated models <code>up.sh --with-ollama</code> pulls on first
-          run. The default is just the embedding model; add more models (e.g. a
+          >Comma-separated models <code>up.sh</code> pulls on first
+          run (skipped with <code>--no-ollama</code>). The default is just the embedding model; add more models (e.g. a
           chat model) if you need them.</td
         >
       </tr>

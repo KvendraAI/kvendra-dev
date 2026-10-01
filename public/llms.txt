@@ -17,7 +17,7 @@ Purpose: read this file and install + configure a self-hosted Kvendra end-to-end
 - Skills (a Claude Code plugin) run on top of the Platform, calling the same tools.
 - CLI & Broker (optional, pre-alpha): a second MCP server over stdio that brokers credentialed operations behind a zero-knowledge vault.
 
-What the reference stack spins up (containers): PostgreSQL 16 + pgvector (the knowledge base — entities + embedding vectors in one DB), the Kvendra Platform engine (the MCP server on :7777), a backup sidecar (scheduled pg_dump), and Ollama (local embeddings runtime, started only with `--with-ollama`). Details: https://github.com/KvendraAI/kvendra-reference-stack
+What the reference stack spins up (containers): PostgreSQL 16 + pgvector (the knowledge base — entities + embedding vectors in one DB), the Kvendra Platform engine (the MCP server on :7777), a backup sidecar (scheduled pg_dump), and Ollama (local embeddings runtime, started by default; skipped with `--no-ollama`). Details: https://github.com/KvendraAI/kvendra-reference-stack
 
 ## Step 1 — Prerequisites + diagnosis
 
@@ -64,28 +64,29 @@ Then say: the clone is infrastructure, not the user's project; onboarding runs i
 
 ## Step 3 — Choose embeddings
 
-- A) Ollama, local (RECOMMENDED, default): nothing leaves the machine, no account. Nothing to prepare — `up.sh --with-ollama` in Step 4 runs the local model `mxbai-embed-large` and rewires the `EMBEDDINGS_*` lines of `.env` for you.
-- B) Kvendra Cloud embeddings key: the user puts a Kvendra Cloud embeddings key in `.env`. They get the key from their Kvendra Cloud account at https://app.kvendra.cloud. Do this BEFORE the bring-up (up.sh only warns about the placeholder after starting everything):
+- A) Ollama, local (RECOMMENDED, default): nothing leaves the machine, no account. Nothing to prepare — `.env.example` already points `EMBEDDINGS_*` at the local Ollama container, and `up.sh` in Step 4 starts it and pulls the model `mxbai-embed-large` (1024-dim).
+- B) The user's own OpenAI-compatible embeddings provider (vLLM, TEI, Mistral, a LiteLLM gateway, ...). The engine validates 1024-dim vectors and sends only `{model, input}` (no `dimensions`), so the model must be NATIVELY 1024-dim (e.g. `mxbai-embed-large` or `bge-large-en-v1.5` on vLLM/TEI, `mistral-embed`) or sit behind a gateway that pins the output to 1024. Do this BEFORE the bring-up:
   1. If `<STACK>/.env` does not exist: `cp <STACK>/.env.example <STACK>/.env`. Never overwrite an existing `.env`.
-  2. Preferred: the user pastes the key into the `EMBEDDINGS_API_KEY=` line of `<STACK>/.env` themselves.
-  3. If `.env` was wired to Ollama earlier (a line that is EXACTLY `# set by up.sh --with-ollama` — match the WHOLE line; `.env.example` quotes that marker inside a comment, so a substring match is a false positive), restore the cloud values with awk + temp file + mv: `EMBEDDINGS_PROVIDER=openai-compatible`, `EMBEDDINGS_BASE_URL=https://api.kvendra.cloud/v1`, `EMBEDDINGS_MODEL=kvendra-embedding-v1`, and delete the marker line.
-  4. Check: `grep -c '^EMBEDDINGS_API_KEY=REPLACE_WITH_YOUR_KVENDRA_KEY' <STACK>/.env` must print `0`.
-  5. `chmod 600 <STACK>/.env` (after every rewrite — `mv` resets permissions).
-  6. Do NOT export the key in the shell: `up.sh` sources `.env` after parsing its flags and overrides it anyway.
-  7. Optional probe (the header goes through stdin so the key never appears in a process argv):
+  2. Set `EMBEDDINGS_PROVIDER=openai-compatible`, `EMBEDDINGS_BASE_URL=<their base URL ending in /v1>`, `EMBEDDINGS_MODEL=<their 1024-dim model>` with awk + temp file + mv. Preferred: the user pastes their key into the `EMBEDDINGS_API_KEY=` line of `<STACK>/.env` themselves (leave it empty if the provider needs no auth).
+  3. `chmod 600 <STACK>/.env` (after every rewrite — `mv` resets permissions).
+  4. Do NOT export the key in the shell: `up.sh` sources `.env` after parsing its flags and overrides it anyway.
+  5. Probe (the header goes through stdin so the key never appears in a process argv) and check the vector length is 1024:
 
 ```
+BASE="$(awk '/^EMBEDDINGS_BASE_URL=/ { sub(/^[^=]*=/, ""); print; exit }' <STACK>/.env)"
+MODEL="$(awk '/^EMBEDDINGS_MODEL=/ { sub(/^[^=]*=/, ""); print; exit }' <STACK>/.env)"
 KEY="$(awk '/^EMBEDDINGS_API_KEY=/ { sub(/^[^=]*=/, ""); print; exit }' <STACK>/.env)"
-printf 'header = "Authorization: Bearer %s"\n' "$KEY" | curl --config - -s -o /dev/null -w '%{http_code}\n' \
-  -X POST https://api.kvendra.cloud/v1/embeddings -H 'Content-Type: application/json' \
-  -d '{"model":"kvendra-embedding-v1","input":"probe"}'
+printf 'header = "Authorization: Bearer %s"\n' "$KEY" | curl --config - -s \
+  -X POST "$BASE/embeddings" -H 'Content-Type: application/json' \
+  -d "{\"model\":\"$MODEL\",\"input\":\"probe\"}" \
+  | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["data"][0]["embedding"]))'
 unset KEY
 ```
 
-     2xx = key works · 401 = invalid key, do NOT bring the stack up, ask for it again · 429 = key valid but no quota left right now (wiring is right) · anything else = inconclusive, show the code and let the user decide.
+     `1024` = provider wired correctly · any other number = the model is not 1024-dim, do NOT bring the stack up, pick another model · an error = wrong URL/key/model, show it and let the user decide. (If `python3` is missing, use `jq '.data[0].embedding | length'` instead.)
 - C) Mock (CI only): `EMBEDDINGS_PROVIDER=mock` — deterministic test vectors, no semantic search.
 
-PORTABILITY (documented fact, NOT a feature): vectors are not portable across embedding models (Ollama `mxbai-embed-large` is not the same space as cloud `kvendra-embedding-v1`). Pick one before storing knowledge; switching later means re-embedding the corpus.
+PORTABILITY (documented fact, NOT a feature): vectors are not portable across embedding models or providers, even when both are 1024-dim (Ollama `mxbai-embed-large` is not the same space as another provider's model). Pick one before storing knowledge; switching later means re-embedding the corpus.
 
 ## Step 4 — Bring up the stack
 
@@ -106,8 +107,8 @@ Non-empty = it is this stack, go to Step 5. EMPTY while healthz answers = anothe
 If nothing answers, bring it up — pick the line that matches Step 3:
 
 ```
-<STACK>/scripts/up.sh --with-ollama     # A) Ollama
-<STACK>/scripts/up.sh                   # B) Kvendra Cloud key (NEVER pass --with-ollama here: it rewires EMBEDDINGS_* to Ollama and leaves the key inert)
+<STACK>/scripts/up.sh                   # A) Ollama (default)
+<STACK>/scripts/up.sh --no-ollama       # B) your own provider (does not start the local Ollama container)
 ```
 
 If it fails with permission denied, run `bash <STACK>/scripts/up.sh` with the same flag. `up.sh` creates `.env` from the example on first run, waits up to 120 s for the health check, and prints the bearer token. First boot takes 60–90 s (pgvector init + migrations); the embedding model is a one-time, lightweight download.

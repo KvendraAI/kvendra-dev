@@ -88,8 +88,9 @@ curl --version</code></pre>
       database dumps.
     </li>
     <li>
-      <strong>Ollama</strong> — the local embeddings runtime, started only when
-      you pass <code>--with-ollama</code>.
+      <strong>Ollama</strong> — the local embeddings runtime, started by
+      default (skip it with <code>--no-ollama</code> if you bring your own
+      provider).
     </li>
   </ul>
   <p class="kvd-learn-more">
@@ -107,7 +108,7 @@ curl --version</code></pre>
   </p>
   <pre><code>git clone https://github.com/KvendraAI/kvendra-reference-stack
 cd kvendra-reference-stack
-./scripts/up.sh --with-ollama</code></pre>
+./scripts/up.sh</code></pre>
   <p>
     The script creates <code>.env</code> on the first run, points the engine at
     the local Ollama embedding model (<code>mxbai-embed-large</code>), waits
@@ -121,13 +122,15 @@ cd kvendra-reference-stack
     download.
   </p>
   <p class="kvd-callout">
-    Prefer hosted embeddings? Put a Kvendra Cloud embeddings key in the
-    <code>EMBEDDINGS_API_KEY=</code> line of <code>.env</code> and start the
-    stack without <code>--with-ollama</code>. You get the key from your Kvendra
-    Cloud account at
-    <a href="https://app.kvendra.cloud" rel="noreferrer">app.kvendra.cloud</a>.
-    Pick one before you store knowledge: vectors from different embedding
-    models do not mix, so switching later means re-embedding.
+    Already run an embeddings service? Point the <code>EMBEDDINGS_*</code>
+    lines of <code>.env</code> at your own OpenAI-compatible provider and start
+    the stack with <code>./scripts/up.sh --no-ollama</code>. The engine stores
+    1024-dimension vectors and does not request a size, so use a model that is
+    natively 1024-d (for example <code>mxbai-embed-large</code> or
+    <code>bge-large-en-v1.5</code> on vLLM/TEI, or <code>mistral-embed</code>)
+    or a gateway that pins the output to 1024. Pick one before you store
+    knowledge: vectors from different providers do not mix, so switching later
+    means re-embedding.
   </p>
 
   <h2>2. Install the Skills</h2>
