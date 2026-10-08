@@ -1,0 +1,115 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Session brief and peer radar — Kvendra developer docs"
+  description="How an agent resumes where you left off with whoami's session brief, sees other writers around the same entities with the peer radar, and pulls changes with check_notifications."
+>
+    <span class="kvd-kicker">Reference</span>
+    <h1>Session brief and peer radar</h1>
+    <p>
+      Every new agent session starts without memory of the last one. Instead of
+      re-explaining where you were, the agent can ask the knowledge base. The
+      answer is <strong>derived from facts the engine already keeps</strong> —
+      your transactions and the server-side entity history — not from a
+      separate log that could drift out of date.
+    </p>
+    <p class="kvd-callout">
+      <strong>Hosted only.</strong> The session brief, entity reservations and
+      <code>check_notifications</code> are part of the hosted service. Liveness and the peer radar need a multi-actor workspace (Team
+      or Enterprise). A self-hosted Platform ignores <code>include_brief</code>
+      and answers a plain <code>whoami</code>, so skills that ask for a brief
+      keep working there — they just get none.
+    </p>
+
+    <h2>The session brief</h2>
+    <pre><code>whoami({'{'} include_brief: true, max_events: 20, since: "2026-10-01T00:00:00Z" {'}'})</code></pre>
+    <p>
+      Without <code>include_brief</code> the response is the usual identity.
+      With it, the response gains a <code>brief</code> object for
+      <strong>you</strong>, the caller:
+    </p>
+    <ul>
+      <li>
+        <code>open_txns</code> — your transactions still in progress, with their
+        type, trigger, start time and recovery notes: the "where did I stop"
+        cursor;
+      </li>
+      <li>
+        <code>recent_activity</code> — your latest entity edits (entity id,
+        version before and after, change summary, trigger, date), capped by
+        <code>max_events</code> and bounded by <code>since</code>, with a
+        <code>truncated</code> flag when there is more.
+      </li>
+    </ul>
+    <p>
+      The brief is pull-only and read-only: asking for it never changes
+      anything. The Skills read it at session start when it is present.
+    </p>
+
+    <h2>Liveness and the peer radar (Team and Enterprise)</h2>
+    <p>
+      In a multi-actor workspace the brief also carries your own
+      <strong>liveness</strong> — a "last seen" indicator derived from your most
+      recent activity (active, idle, or older), not an online/offline signal.
+      Add <code>radar: true</code> for the <strong>peer radar</strong>:
+    </p>
+    <pre><code>whoami({'{'} include_brief: true, radar: true {'}'})
+whoami({'{'} include_brief: true, radar: true, radar_all_actors: true {'}'})   // owner / admin</code></pre>
+    <ul>
+      <li>
+        By default the radar covers your <strong>neighbourhood</strong>: other
+        writer-units with in-progress transactions on, or recent edits to, the
+        entities you touched and their direct neighbours.
+      </li>
+      <li>
+        <code>radar_all_actors: true</code> spans the whole workspace. It takes
+        effect only for roles allowed to see every in-progress transaction
+        (owner, admin); for anyone else it silently falls back to the
+        neighbourhood instead of failing.
+      </li>
+      <li>
+        The radar never crosses workspaces, and descriptions of what a peer is
+        doing are computed on demand from the facts, never stored.
+      </li>
+    </ul>
+
+    <h2>Visibility follows roles</h2>
+    <p>
+      The brief and the radar show only what your role may see. You always see
+      your own transactions. Roles without workspace-wide transaction
+      visibility — a viewer, for example — do not see other actors'
+      in-progress transactions or their drafts: the radar gives such a caller
+      the <em>count</em> of nearby peer transactions, not their detail.
+    </p>
+
+    <h2>Pulling changes: <code>check_notifications</code></h2>
+    <p>
+      When you read an entity you intend to change, you can reserve it:
+      <code>entity_get</code> with <code>intent: "soft-announce"</code> (a
+      cooperative, non-blocking announcement) or <code>intent: "hard-lock"</code>
+      (exclusive: other writers get <code>409 LOCKED</code> until it is
+      released). Both need an <code>agent_instance_id</code>.
+    </p>
+    <pre><code>check_notifications({'{'} agent_instance_id: "&lt;your-agent-instance&gt;", max_events: 50 {'}'})</code></pre>
+    <p>
+      <code>check_notifications</code> then returns what <em>other</em>
+      writer-units changed on the entities you reserved since your last check
+      (your own changes are excluded), plus the open notices in your
+      <strong>dispute inbox</strong>. There is no push: the transport is
+      pull-only, so call it at session start and before you write. It is
+      read-only and never blocks a write — the hard guarantee against lost
+      updates is still the <code>expected_version</code> check described in
+      <a href="/docs/pipelines/#concurrent-writers">Concurrent writers</a>.
+    </p>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

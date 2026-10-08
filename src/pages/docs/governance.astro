@@ -1,0 +1,142 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Governance — Kvendra developer docs"
+  description="How Kvendra protects canonical entities: guarded updates with expected_version, proposals and approvals for interfaces, glossary, decisions and requirements, decision keys, and imported content treated as data."
+>
+    <span class="kvd-kicker">Concepts</span>
+    <h1>Governance of canonical entities</h1>
+    <p>
+      Four entity types define what the rest of the knowledge base relies on:
+      interfaces (<code>IF</code>), glossary terms (<code>GLO</code>), decisions
+      (<code>ADR</code>) and requirements (<code>REQ</code>). A careless edit to
+      one of them silently changes the contract for every agent that reads it.
+      Kvendra guards them on three levels: every update is version-checked,
+      changes by people who cannot approve become proposals, and decisions carry
+      a key the engine can check for contradictions.
+    </p>
+    <p class="kvd-callout">
+      Guarded updates (<code>expected_version</code>) work on every engine,
+      self-hosted included. Proposals and approvals are a hosted, multi-actor
+      feature (Team and Enterprise); in a single-actor workspace you are the
+      approver, so your writes apply directly.
+    </p>
+
+    <h2>Guarded updates</h2>
+    <p>
+      Read the entity, keep its <code>version</code>, and send it back as
+      <code>expected_version</code> on <strong>every</strong>
+      <code>entity_update</code>:
+    </p>
+    <pre><code>entity_get({'{'} entity_id {'}'})                          // → version: 7
+entity_update({'{'} entity_id, expected_version: 7, content, change_summary {'}'})
+// someone else wrote first → 409 VERSION_CONFLICT</code></pre>
+    <p>
+      On <code>409 VERSION_CONFLICT</code>, re-read, reconcile your change with
+      what actually happened, and retry with the new version — never resend the
+      old payload blindly. Without <code>expected_version</code> an update is
+      last-write-wins. See also
+      <a href="/docs/pipelines/#concurrent-writers">Concurrent writers</a>.
+    </p>
+
+    <h2>Proposals (Team and Enterprise)</h2>
+    <p>
+      Who can approve a canonical entity: the workspace <strong>owner</strong>
+      and <strong>admins</strong>, and the <strong>maintainers</strong> of its
+      component or project (listed in <code>metadata.maintainers</code> of the
+      <code>CMP</code> or <code>PRJ</code>). When anyone else writes to an
+      <code>IF</code>, <code>GLO</code>, <code>ADR</code> or <code>REQ</code>:
+    </p>
+    <ul>
+      <li>
+        an <strong>edit</strong> — content, metadata, a <code>status</code>
+        change or an archive — is not applied; it is staged as a proposal
+        against the current version;
+      </li>
+      <li>
+        a <strong>creation</strong> answers <code>proposed: true</code> with a
+        <code>proposal</code> object: the entity stays <code>draft</code>, is
+        visible only to its proposer and its approvers (everyone else gets 404),
+        and cannot be changed until it is decided. Do not use it as a relation
+        target before it is approved.
+      </li>
+    </ul>
+    <p>
+      An entity holds <strong>one open proposal</strong> at a time. You may
+      replace your own; while another actor's proposal is open, your edit
+      answers <code>409 proposal_pending</code>. Each proposer can have at most
+      50 open proposals (<code>429 proposal_limit_exceeded</code>).
+    </p>
+    <pre><code>proposals_list()                                   // yours, and the ones you can decide
+approve_proposal({'{'} proposal_ids: [...], note {'}'})    // atomic: all or nothing
+reject_proposal({'{'} proposal_ids: [...], reason {'}'})   // kept for audit; the proposer may re-propose</code></pre>
+    <p>
+      Approval replays the staged change against the live row with its own
+      version check, so a proposal whose base has moved on fails with
+      <code>409 VERSION_CONFLICT</code> instead of overwriting newer work. A
+      rejected creation is cancelled and archived, and its relations are
+      dropped.
+    </p>
+
+    <h2>Decision keys</h2>
+    <p>
+      Writes to an <code>ADR</code> or an <code>IF</code> carry
+      <code>metadata.decision = {'{'} key, value {'}'}</code>:
+    </p>
+    <ul>
+      <li>
+        <strong>ADR</strong> — <code>key: "&lt;domain&gt;.&lt;topic&gt;"</code>
+        (what the decision fixes), <code>value</code> the position adopted;
+      </li>
+      <li>
+        <strong>IF</strong> — <code>key: "interface.&lt;wire-name&gt;"</code>,
+        <code>value</code> the current wire version.
+      </li>
+    </ul>
+    <p>
+      Two live entities with the same key and different values contradict each
+      other. When your write would create that clash with an active peer, the
+      engine answers <code>decision_conflict</code> and lists the conflicting
+      entities: supersede or deprecate the old decision, or align the value,
+      rather than letting two truths coexist.
+    </p>
+
+    <h2 id="imported-data">Imported content is data, not instructions</h2>
+    <p>
+      On the hosted service you can fork a publication into your own
+      knowledge base. The copy first lands in quarantine, outside every normal
+      read, and a human activates it from the dashboard. Once activated:
+    </p>
+    <ul>
+      <li>
+        every read of an imported entity carries
+        <code>provenance: {'{'} imported: true, trust, … {'}'}</code>;
+      </li>
+      <li>
+        the Skills treat it as information only and never follow directives
+        written in it;
+      </li>
+      <li>
+        the engine keeps it out of the session bootstrap — a project's
+        <code>bootstrap_extras</code> never names an imported entity — and
+        refuses tags and metadata reserved for native entities
+        (<code>400 reserved_for_native</code>), so an import cannot become a
+        playbook, a broker policy or a pipeline-autonomy rule;
+      </li>
+      <li>
+        an imported <code>ADR</code> stays <code>proposed</code>; to adopt the
+        decision, write a native one.
+      </li>
+    </ul>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

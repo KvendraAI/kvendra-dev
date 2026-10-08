@@ -1,0 +1,121 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Pipeline autonomy — Kvendra developer docs"
+  description="The declarative pipeline-autonomy policy of the Skills orchestrators: default two human gates, single-gate, zero-gate with an autonomy log and an inviolable hard floor, and backlog chaining."
+>
+    <span class="kvd-kicker">Concepts</span>
+    <h1>Pipeline autonomy</h1>
+    <p>
+      The pipeline orchestrators of the Skills plugin — <code>/new-feature</code>
+      and <code>/bug</code> — pause for a human at fixed points. How many pauses
+      a project wants is a decision, so it is declared once in the knowledge
+      base as a policy, not repeated in every conversation. The policy is
+      <strong>opt-in</strong>: with no policy, every pipeline keeps the most
+      conservative behaviour.
+    </p>
+    <p class="kvd-callout">
+      The policy governs <strong>conversation gates and orchestration
+      only</strong>. It never relaxes broker enforcement, the deploy no-go list,
+      the plugin hooks or the transaction protocol. Someone able to edit it
+      could remove a conversational checkpoint, never run a credentialed
+      operation.
+    </p>
+
+    <h2>Where the policy lives</h2>
+    <p>
+      An active <code>STD</code> entity tagged <code>scope:pipeline-autonomy</code>
+      at project level, optionally with a component-level override. At start the
+      orchestrator runs exactly one query for it, reads it fresh on every run,
+      and prints the resolved mode in its progress header:
+    </p>
+    <pre><code>autonomy: zero-gate | single-gate | dual-gate (policy: &lt;STD-id&gt; v&lt;N&gt; | defaults)</code></pre>
+    <p>
+      Merging is <strong>most-conservative-wins</strong>, key by key:
+      <code>dual</code> beats <code>single</code> beats <code>none</code>, and a
+      component override may tighten the project policy but never relax it. An
+      unknown value resolves to the most conservative mode, so an older plugin
+      reading a newer policy degrades towards more gating, not less. Edits made
+      while a pipeline runs apply from its next start.
+    </p>
+    <pre><code>schema_version: 2
+gates:
+  new-feature: dual      # dual | single | none   (absent => dual)
+  bug: default           # default | none         (absent => default)
+autonomy_log: true       # record every auto-resolved decision (zero-gate)
+backlog_chaining: false  # chain the next open item after activation (zero-gate)</code></pre>
+
+    <h2>The three modes</h2>
+    <ul>
+      <li>
+        <strong>Dual-gate</strong> (default, no policy) — two mandatory pauses
+        in <code>/new-feature</code>: one on the requirement, one on the spec.
+      </li>
+      <li>
+        <strong>Single-gate</strong> — exactly one pause, with the requirement,
+        the spec and a recommendation consolidated. Early escalation still stops
+        before planning when something looks wrong.
+      </li>
+      <li>
+        <strong>Zero-gate</strong> (<code>none</code>) — no mandatory
+        conversational pauses. The orchestrator runs <em>the same
+        evaluation</em> as single-gate, but each signal that would ask for review
+        is auto-resolved with the most conservative viable option and recorded
+        in an <strong>AUTONOMY_LOG</strong>: one line per decision, shown in the
+        progress output and saved with the pipeline's record in the knowledge
+        base (or in the cancel reason if the transaction is cancelled first).
+        Auditing replaces approval; it does not replace evaluation.
+      </li>
+    </ul>
+
+    <h2>The hard floor</h2>
+    <p>
+      Three classes always stop for a human, in every mode. They are not
+      configurable — a floor you can lower is not a floor:
+    </p>
+    <ol>
+      <li>
+        any operation on the deploy no-go list — a production deploy, a real
+        registry publish, a vault or allowlist change, a destructive git or
+        cloud operation;
+      </li>
+      <li>an estimated recurring cost impact above 20% of the current budget;</li>
+      <li>a security-tagged change that fails exhaustive validation.</li>
+    </ol>
+    <p>
+      In zero-gate mode a validation criterion that fails three times does not
+      ask: the pipeline records a blocked issue and continues when the criterion
+      is not core, or cancels the transaction when it blocks the spec's core
+      acceptance criteria.
+    </p>
+
+    <h2>Backlog chaining</h2>
+    <p>
+      With zero-gate and <code>backlog_chaining: true</code>, an invocation that
+      declares a backlog scope — a milestone tag, a roadmap, or an explicit list
+      of issues — picks the next open item after each activation and starts a
+      fresh pipeline for it. It stops when the scope is empty, a hard-floor
+      pause fires, two consecutive items end blocked, or the session budget runs
+      out. Pacing belongs to the harness: run it under <code>/loop</code> (or
+      scheduled wake-ups) for scopes that outlive one session; the skill itself
+      never sleeps or busy-waits.
+    </p>
+
+    <h2>Rolling back</h2>
+    <p>
+      Set the policy's status to anything other than <code>active</code>, or
+      archive it: the next pipeline start is back to the two default gates.
+      There is no local file to clean up.
+    </p>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

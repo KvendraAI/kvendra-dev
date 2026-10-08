@@ -105,7 +105,7 @@ import PipelinesFacts from '../../content/generated/pipelines-facts.mdx';
       test proved it — without anyone having to remember to write it down.
     </p>
 
-    <h2>Concurrent writers: optimistic locking</h2>
+    <h2 id="concurrent-writers">Concurrent writers: optimistic locking</h2>
     <p>
       When two writers touch the same entity at once, Kvendra does not silently
       take the last write. Each update carries the <code>expected_version</code>

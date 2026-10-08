@@ -257,10 +257,11 @@ TXN-… committed`}</code></pre>
     and everything above works without it.
   </p>
   <p>
-    The CLI is currently <strong>pre-alpha</strong>. It is not yet on crates.io
-    (a Homebrew formula is pending), so install it from source when you are ready:
+    The CLI is in <strong>alpha</strong>. Install it from crates.io when you are
+    ready (pre-built binaries are also on GitHub Releases; see
+    <a href="/docs/cli/">CLI</a>):
   </p>
-  <pre><code>cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra</code></pre>
+  <pre><code>cargo install --locked kvendra</code></pre>
   <p>
     It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven
     primitives — git, github, npm, pypi, aws, http and shell — plus an

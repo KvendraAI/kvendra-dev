@@ -1,0 +1,122 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+// Literal reference syntax, kept out of Astro's expression parser.
+const cfgRef = '{{cfg:<key>}}';
+const lvrRef = '{{lvr:<key>}}';
+---
+
+<DocsLayout
+  title="Private values and local variables — Kvendra developer docs"
+  description="Keep identifying values out of knowledge-base text: project-wide private values referenced as cfg references and resolved only to operate, and per-machine local variables substituted only by the local broker."
+>
+    <span class="kvd-kicker">Reference</span>
+    <h1>Private values and local variables</h1>
+    <p>
+      Knowledge-base text is read by every agent and every member of the
+      workspace, and it can be exported or published. Identifying values do not
+      belong in it. Kvendra gives you two kinds of reference instead of the
+      literal value:
+    </p>
+    <ul>
+      <li>
+        a <strong>private value</strong>, <code>{cfgRef}</code> — a fact of the
+        <em>project</em>, stored once in the knowledge base;
+      </li>
+      <li>
+        a <strong>local variable</strong>, <code>{lvrRef}</code> — a fact of
+        <em>one user on one machine</em>, never stored in the knowledge base.
+      </li>
+    </ul>
+    <p>
+      Keys follow <code>[a-z0-9][a-z0-9._-]{'{0,127}'}</code>.
+      <strong>Credentials are neither</strong>: they go into the
+      <a href="/docs/cli/">CLI vault</a>, never into a knowledge-base entry.
+    </p>
+    <p class="kvd-callout">
+      Both are features of the hosted service. Local variables also need the
+      <a href="/docs/cli/">CLI</a> (0.7.0 or later) on each machine.
+    </p>
+
+    <h2>Private values</h2>
+    <p>
+      Use them for identifiers that must not appear in text — account ids,
+      local paths, profile ids, person names, case numbers. Each is stored
+      <strong>once</strong> as a <code>CFG</code> private value; everything else
+      refers to it.
+    </p>
+    <ul>
+      <li>
+        <strong>Write references, never literal values.</strong> Enter the value
+        once, ideally from the dashboard editor so it never passes through a
+        language model.
+      </li>
+      <li>
+        <strong>Reads never resolve.</strong> <code>entity_get</code>,
+        <code>entity_query</code>, <code>entity_search</code>,
+        <code>entity_related</code> and the export return references raw and
+        list them in <code>private_refs</code>. Edit the text and write it back
+        as-is.
+      </li>
+      <li>
+        <strong>Resolve only to operate</strong>, with
+        <code>config_get</code> or:
+      </li>
+    </ul>
+    <pre><code>private_value_resolve({'{'} keys: ["&lt;key&gt;", ...], project_id {'}'})   // 1–50 exact keys</code></pre>
+    <p>
+      Resolution needs the <code>cfg:resolve</code> permission, is audited per
+      request (keys and counts, never values) and is served with
+      <code>Cache-Control: no-store</code>. Use the value for the operation and
+      never paste it back into text.
+    </p>
+    <p>
+      Writes are checked. Text carrying an unescaped display marker is rejected
+      with <code>400 private_marker_in_text</code>; to mention the syntax
+      literally, escape it with a leading backslash. Two warnings help you keep
+      text clean: <code>private_value_suggested</code> (this looks like a value
+      that should be a reference) and <code>private_ref_undefined</code> (the
+      key you referenced does not exist).
+    </p>
+
+    <h2>Local variables</h2>
+    <p>
+      Use them for what differs per machine: your workspace path, the AWS
+      profile of this laptop, a local host or port.
+    </p>
+    <ol>
+      <li>
+        <strong>Declare</strong> the variable in the knowledge base as a
+        <code>CFG</code> with
+        <code>metadata: {'{'} kind: "local_var", key, type, description {'}'}</code>
+        and <strong>no value</strong>. <code>type</code> is one of
+        <code>path</code>, <code>host</code>, <code>port</code>,
+        <code>profile_id</code>, <code>string</code>.
+      </li>
+      <li>
+        <strong>Set</strong> the value on each machine, by a human in a real
+        terminal: <code>kvendra vars set &lt;key&gt; --type &lt;type&gt;</code>.
+        It lives only in that machine's local vault.
+      </li>
+      <li>
+        <strong>Reference</strong> it as <code>{lvrRef}</code> only where the
+        broker consumes it — a working directory, a profile id, a bounded
+        argument, a URL. The local broker substitutes it inside its primitive,
+        validates it by type and masks it in its output.
+      </li>
+    </ol>
+    <p>
+      The engine never has the value. Referencing a key with no declaration
+      returns the warning <code>local_var_undeclared</code>. When content is
+      published, each local reference is replaced by a placeholder.
+    </p>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

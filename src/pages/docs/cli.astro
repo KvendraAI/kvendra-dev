@@ -10,11 +10,11 @@ import CliFacts from '../../content/generated/cli-facts.mdx';
     <span class="kvd-kicker">Reference</span>
     <h1>The Kvendra CLI</h1>
     <p class="kvd-callout">
-      <strong>Pre-alpha.</strong> The CLI is under active development — the
-      <code>kvendra</code> binary is installed from source, the crates.io name is
-      reserved but not yet published, and a Homebrew formula and signed builds are
-      planned. Treat commands and defaults below as the current shape, not a
-      frozen contract.
+      <strong>Alpha.</strong> The CLI works and is used daily, but it is early:
+      expect rough edges, and the command surface and on-disk formats may still
+      change. It is also <strong>optional</strong> — the hosted service and a
+      self-hosted Platform work fully without it. Release binaries are not yet
+      signed.
     </p>
     <p>
       The CLI is where Kvendra meets your machine. It is a foundational security
@@ -43,11 +43,17 @@ import CliFacts from '../../content/generated/cli-facts.mdx';
     <h2>The user flow, step by step</h2>
 
     <h3>1. Install</h3>
-    <p>Build from source while the project is pre-alpha:</p>
-    <pre><code>cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra</code></pre>
+    <p>From crates.io (or track the latest <code>main</code> from git):</p>
+    <pre><code>cargo install --locked kvendra
+# or
+cargo install --locked --git https://github.com/KvendraAI/kvendra-cli kvendra
+kvendra --version</code></pre>
     <p>
-      That gives you the <code>kvendra</code> binary. (Not on crates.io yet; brew
-      is pending.)
+      Pre-built binaries for macOS, Linux and Windows are attached to each
+      <a href="https://github.com/KvendraAI/kvendra-cli/releases/latest" rel="noreferrer">GitHub release</a>.
+      They are <strong>unsigned</strong>: on macOS Gatekeeper may warn about an
+      unidentified developer, on Windows SmartScreen about an unknown publisher.
+      There is no Homebrew formula yet.
     </p>
 
     <h3>2. <code>kvendra init</code> — create the vault (once)</h3>
@@ -135,6 +141,19 @@ import CliFacts from '../../content/generated/cli-facts.mdx';
     <pre><code># Inspect the broker's primitive surface — no unlock required
 kvendra capabilities --pretty</code></pre>
 
+    <h3>Inspecting an allowlist</h3>
+    <pre><code>kvendra secret show-allowlist &lt;profile_id&gt;</code></pre>
+    <p>
+      Prints a profile's allowlist YAML and its HMAC status —
+      <code>VALID</code>, <code>TAMPERED</code>, <code>NO_HMAC</code>, or
+      <code>UNVERIFIED</code> when the vault is locked. It reuses the active
+      session, never prompts for a password and never opens the secret itself.
+      It exits non-zero on <code>TAMPERED</code> or <code>NO_HMAC</code>, so you
+      can use it in a check script. An allowlist copied from another profile,
+      even with a valid signature, reports <code>TAMPERED</code> — exactly as
+      the broker would treat it.
+    </p>
+
     <h2>The seven primitives (plus an escape hatch)</h2>
     <p>
       The broker exposes seven open-core capability primitives —
@@ -150,6 +169,81 @@ kvendra capabilities --pretty</code></pre>
         session, requires a stated reason, and is <strong>always flagged in the
         audit log</strong>. It is the last resort when no structured primitive
         fits, not a normal path.
+      </li>
+    </ul>
+
+    <h2>Local variables</h2>
+    <p>
+      Some values belong to <strong>one user on one machine</strong> — your
+      workspace path, the AWS profile of this laptop, a local host or port. They
+      should not live in shared knowledge-base text, and an agent should not
+      need to know them. Since 0.7.0 the CLI keeps them as
+      <strong>local variables</strong>, referenced in the KB as
+      <code>{'{{lvr:<key>}}'}</code>.
+    </p>
+    <pre><code>kvendra vars set &lt;key&gt; --type &lt;type&gt;   # type: path, host, port, profile_id, string
+kvendra vars verify &lt;key&gt;
+kvendra vars list                         # never prints values
+kvendra vars unset &lt;key&gt;</code></pre>
+    <ul>
+      <li>
+        <code>set</code>, <code>verify</code> and <code>unset</code> need a
+        <strong>real terminal</strong> and your master password: the value is
+        typed by a human on the TTY — never passed in argv, an environment
+        variable or through an agent.
+      </li>
+      <li>
+        Values are stored in their own encrypted file in the vault (included in
+        backups; a restore marks every value unverified until you verify it
+        again).
+      </li>
+      <li>
+        <strong>Only the broker substitutes them</strong>, inside its primitives
+        (a working directory, a profile id, a bounded argument, a URL). The
+        allowlist is checked against the resolved arguments, each value is
+        validated by its type, and every local value is masked in results and
+        errors before they reach the caller.
+      </li>
+      <li>
+        The masking removes literal occurrences; a value that the executed
+        command itself re-encodes (base64, hex, split) is not detected, so keep
+        local variables out of commands that transform their arguments.
+      </li>
+      <li>
+        On Windows, <code>vars set</code> and <code>vars verify</code> are not
+        supported yet.
+      </li>
+    </ul>
+    <p>
+      How a variable is declared in the knowledge base is covered in
+      <a href="/docs/private-values/">Private values and local variables</a>.
+    </p>
+
+    <h2>Hosted sign-in: silent session refresh</h2>
+    <p>
+      If you use the CLI against the hosted service, sign in once with
+      <code>kvendra login --pro</code>. Since 0.8.0 that session
+      <strong>refreshes itself silently</strong>: the commands that talk to the
+      hosted service (such as <code>kvendra backup</code> and
+      <code>kvendra notifs</code>) renew the tokens before calling when they are
+      about to expire, so you no longer have to log in again every hour. The refresh token is stored in the session directory
+      with owner-only permissions and is never logged.
+    </p>
+    <ul>
+      <li>
+        <code>kvendra session info</code> shows whether refresh is available for
+        your session; <code>kvendra logout</code> removes it.
+      </li>
+      <li>
+        If the identity provider rejects the refresh, the current tokens keep
+        working until they expire, and then the CLI asks you to run
+        <code>kvendra login --pro</code> again. Network errors and server-side
+        hiccups are treated as transient and do not end the session.
+      </li>
+      <li>
+        Sessions created by older versions have no refresh token. Update to the
+        latest version and log in once more to get silent refresh; older
+        versions will need a fresh login whenever the short-lived token expires.
       </li>
     </ul>
 

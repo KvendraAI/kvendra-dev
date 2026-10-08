@@ -1,0 +1,102 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout
+  title="Workspace Files — Kvendra developer docs"
+  description="Attach binaries to knowledge-base entities with Workspace Files: the upload flow, referencing files from entities and markdown, short-lived download URLs, limits, roles and files in publications."
+>
+    <span class="kvd-kicker">Reference</span>
+    <h1>Workspace Files</h1>
+    <p>
+      Entities hold text and structured metadata. Binary attachments —
+      documents, images, video, audio, archives — live in
+      <strong>Workspace Files</strong> and are referenced from entities by id.
+      Inline base64 in an entity write is refused; upload the bytes instead.
+    </p>
+    <p class="kvd-callout">
+      <strong>Hosted only</strong> (Pro, Team and Enterprise). The self-hosted
+      Platform has no file store.
+    </p>
+
+    <h2>Uploading a file</h2>
+    <pre><code>1. file_upload_init({'{'} name, mime, size_bytes, sha256?, entity_id? {'}'})
+     -> {'{'} file_id, status: "pending", expires_at, upload {'}'}
+2. PUT the bytes to upload.url with exactly upload.headers
+     (over 100 MB: MULTIPART — PUT each 64 MB part to its parts[].url, keep each ETag)
+3. file_complete({'{'} file_id, parts? {'}'})   -> status: "ready"</code></pre>
+    <ul>
+      <li>Upload URLs expire after <strong>300 seconds</strong>; call <code>file_upload_init</code> again if they lapse.</li>
+      <li>
+        <code>file_complete</code> verifies the stored length (and the sha256 on
+        a single PUT). A mismatch deletes the file.
+      </li>
+      <li>Pending uploads that are never completed are removed after 24 hours.</li>
+    </ul>
+
+    <h2>Attaching it to an entity</h2>
+    <p>Reference a <code>ready</code> file in the entity's metadata:</p>
+    <pre><code>metadata.attachments[] = {'{'} file_id, kind: "kvendra-file", title, mime, size_bytes, sha256 {'}'}
+// a link that is not uploaded:
+metadata.attachments[] = {'{'} kind: "external-url", url, title {'}'}</code></pre>
+    <p>
+      To show it inside markdown content, cite it as
+      <code>![alt text](file:&lt;file_id&gt;)</code>, and also list it in
+      <code>metadata.attachments[]</code> so it travels with the entity.
+      Attaching a file that is missing, still pending or deleted fails the write
+      with <code>400 invalid_request</code>. Links to drafts take effect when
+      the transaction is activated.
+    </p>
+
+    <h2>Downloading and managing files</h2>
+    <ul>
+      <li>
+        <code>file_get_url({'{'} file_id {'}'})</code> mints a fresh download URL,
+        valid for 300 seconds, on every call. <strong>Never store a
+        URL</strong> — store the <code>file_id</code>.
+      </li>
+      <li><code>file_list</code> pages the registry (no URLs), including the live entities that link each file.</li>
+      <li>
+        <code>file_delete</code> removes a file. While it is attached to a live
+        entity it answers <code>409 file_linked</code> with the entity ids:
+        remove it from <code>metadata.attachments[]</code> first.
+      </li>
+    </ul>
+
+    <h2>Limits</h2>
+    <ul>
+      <li>At most <strong>500 MB</strong> per file. Executables (exe, dll, msi, sh, ps1, jar, apk, …) are refused.</li>
+      <li>
+        Storage quota: <strong>5 GB</strong> on Pro; on Team and Enterprise
+        <strong>10 GB for each seat</strong>, pooled across the workspace.
+        Files stored by your publications count against the same quota.
+        Exceeding it answers <code>422 files_quota_exceeded</code>.
+      </li>
+    </ul>
+
+    <h2>Roles</h2>
+    <ul>
+      <li>Every role can list and download.</li>
+      <li>Owner, admin and member can upload and delete their own files.</li>
+      <li>Owner and admin can delete any file.</li>
+    </ul>
+
+    <h2>Files in publications</h2>
+    <p>
+      When you publish entities, their linked files are preselected. Every
+      published file is a <strong>copy</strong> with its metadata always
+      stripped (EXIF and GPS, document properties, embedded titles and dates);
+      a file that cannot be cleaned is never published. PDF text is scanned like
+      any other content. Images, video and audio cannot be scanned, so the
+      publisher must confirm each one explicitly before it goes out.
+    </p>
+</DocsLayout>
+
+<style>
+  .kvd-callout {
+    border-left: 3px solid var(--phos);
+    padding-left: var(--sp-4);
+    color: var(--fog);
+    font-size: var(--fs-sm);
+  }
+</style>

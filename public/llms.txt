@@ -1,6 +1,6 @@
 # Kvendra — install guide for AI agents
 
-Purpose: read this file and install + configure a self-hosted Kvendra end-to-end for the user. Kvendra is platform-first — the core is a self-hosted knowledge-base engine (Kvendra Platform). Skills run on top of it; the CLI is an optional, pre-alpha security layer. There is ONE primary path here: the reference stack with local Ollama embeddings (no signup, 100% local). The step-by-step / from-source / own-Postgres variants live in the Advanced install page (https://kvendra.dev/docs/self-hosting/). The hosted service (Kvendra Cloud) has its own guide: https://app.kvendra.cloud/docs/. Run the steps in order; each ends with a verification you can check before moving on. Recommended host: Claude Code.
+Purpose: read this file and install + configure a self-hosted Kvendra end-to-end for the user. Kvendra is platform-first — the core is a self-hosted knowledge-base engine (Kvendra Platform). Skills run on top of it; the CLI is an optional, alpha security layer. There is ONE primary path here: the reference stack with local Ollama embeddings (no signup, 100% local). The step-by-step / from-source / own-Postgres variants live in the Advanced install page (https://kvendra.dev/docs/self-hosting/). The hosted service (Kvendra Cloud) has its own guide: https://app.kvendra.cloud/docs/. Run the steps in order; each ends with a verification you can check before moving on. Recommended host: Claude Code.
 
 ## Agent rules (read first)
 
@@ -15,7 +15,7 @@ Purpose: read this file and install + configure a self-hosted Kvendra end-to-end
 
 - Claude Code (host) talks to Kvendra Platform over MCP HTTP on port 7777 — this is the knowledge base (the required core).
 - Skills (a Claude Code plugin) run on top of the Platform, calling the same tools.
-- CLI & Broker (optional, pre-alpha): a second MCP server over stdio that brokers credentialed operations behind a zero-knowledge vault.
+- CLI & Broker (optional, alpha): a second MCP server over stdio that brokers credentialed operations behind a zero-knowledge vault.
 
 What the reference stack spins up (containers): PostgreSQL 16 + pgvector (the knowledge base — entities + embedding vectors in one DB), the Kvendra Platform engine (the MCP server on :7777), a backup sidecar (scheduled pg_dump), and Ollama (local embeddings runtime, started by default; skipped with `--no-ollama`). Details: https://github.com/KvendraAI/kvendra-reference-stack
 
@@ -214,10 +214,10 @@ It routes the request to the right workflow. Payoff: ask it to plan something sm
 
 ## (Optional) Add the CLI security broker
 
-The CLI is OPTIONAL and PRE-ALPHA. Skills and the Platform work without it. Add it only for brokered operations behind a zero-knowledge vault. Not yet on crates.io (Homebrew formula pending), so install from source:
+The CLI is OPTIONAL and in ALPHA. Skills and the Platform work without it. Add it only for brokered operations behind a zero-knowledge vault. Install it from crates.io (pre-built binaries are also on GitHub Releases):
 
 ```
-cargo install --git https://github.com/KvendraAI/kvendra-cli kvendra
+cargo install --locked kvendra
 ```
 
 It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven primitives (git, github, npm, pypi, aws, http, shell) plus an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
@@ -247,4 +247,4 @@ Highlights of that path:
 5. `mcp__kvendra-platform__whoami` succeeds and `entity_query` returns.
 6. The Skills plugin is installed (`/plugin` lists kvendra-skills).
 7. `/kvendra-skills:onboard-project <PROJECT_ID>` scaffolds the project structure (PRJ + components + GLO/STD + a canonical CLAUDE.md) in the local KB.
-8. (If installed) The CLI broker responds — remember it is pre-alpha and optional.
+8. (If installed) The CLI broker responds — remember it is alpha and optional.
