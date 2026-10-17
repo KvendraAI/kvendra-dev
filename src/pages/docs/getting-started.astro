@@ -203,11 +203,18 @@ claude mcp add --transport http kvendra-platform http://localhost:7777/mcp \
     the skeleton your agent reads on every session now exists.
   </p>
 
-  <h2>5. Day to day</h2>
+  <h2>5. Start every task with /kvendra</h2>
   <p>
-    Tell Kvendra what you want to do and it routes you to the right workflow:
+    Setup connects Kvendra to your project. It does not start any work by
+    itself. For each task, type <code>/kvendra-skills:kvendra</code> in Claude
+    Code, followed by what you want, in your own words. (Type
+    <code>/kvendra</code> and pick it from the list.) <code>/kvendra</code> is
+    the entry point: it reads your project's knowledge base and proposes the
+    next step.
   </p>
-  <pre><code>/kvendra-skills:kvendra &lt;what you want to do&gt;</code></pre>
+  <pre><code>/kvendra-skills:kvendra add CSV export to the reports page
+/kvendra-skills:kvendra the login fails when the password has a space
+/kvendra-skills:kvendra what did we decide about the payment provider?</code></pre>
 
   <h2>6. Your first win</h2>
   <p>
