@@ -66,7 +66,7 @@ function renderCliFacts(cli) {
     '',
     '## The open-core primitives',
     '',
-    `The broker exposes ${cli.primitives_open_core_count} open-core primitives. Each primitive receives an injected secret resolved by the vault — the model issuing the call never sees the raw value.`,
+    `The broker exposes ${cli.primitives_open_core_count} open-core primitives. Each primitive receives an injected secret resolved by the vault — by default, the model issuing the call does not see the raw value.`,
     '',
     renderPrimitives(cli),
     '',

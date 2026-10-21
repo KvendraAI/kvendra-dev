@@ -114,7 +114,7 @@
       "format": "Claude Code plugin (markdown prompts; no runtime code)",
       "source_language": "English (canonical)",
       "summary": "The official Claude Code plugin that materializes the skills layer: the single set of skills for the project, distributed as a markdown plugin through a public marketplace. It is the join point that orchestrates the CLI and the KB.",
-      "design_principle": "Most skills run on the Platform alone — planning, drafting entities in a transaction, assembling a changelog are pure knowledge-base operations. The optional CLI broker is required only by skills that perform sensitive system operations (a git push, a deploy), where it routes the operation so the language model never sees a raw token or key. You can fork the open-source skills to change which steps use the broker.",
+      "design_principle": "Most skills run on the Platform alone — planning, drafting entities in a transaction, assembling a changelog are pure knowledge-base operations. The optional CLI broker is required only by skills that perform sensitive system operations (a git push, a deploy), where it routes the operation so, by default, the language model does not see a raw token or key. You can fork the open-source skills to change which steps use the broker.",
       "v2_direction": [
         "A single set of skills for Claude Code (the parallel community track is deprecated).",
         "English as the source language; user-facing output follows the language declared in the project config.",
@@ -183,7 +183,7 @@
           "license": "MIT"
         }
       ],
-      "topology": "The open pieces operate independently and can be used separately. Skills are the join point: they orchestrate the CLI (for sensitive operations, so the LLM never sees secrets) and the KB (for knowledge). The obligation to run the CLI comes from the skills' security design, not from a product restriction.",
+      "topology": "The open pieces operate independently and can be used separately. Skills are the join point: they orchestrate the CLI (for sensitive operations, so by default the LLM does not see the credentials you store in Kvendra) and the KB (for knowledge). The obligation to run the CLI comes from the skills' security design, not from a product restriction.",
       "edges_open": [
         "Skills -> CLI (mandatory by security): no sensitive operation runs directly; everything goes through the broker.",
         "Skills -> KB: each project talks to one KB engine."

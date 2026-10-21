@@ -27,12 +27,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <h2>Encrypted local vault</h2>
     <p>
-      The model orchestrating your work should never see a secret in the clear.
-      Secrets stay in a local vault; when an operation needs one, the broker
-      injects it at the moment of use and runs the operation on the agent's
-      behalf, returning only the result. The boundary between the thing that
-      reasons and the thing that holds the keys is enforced, not advisory — an
-      operation that is not on the signed allowlist simply does not run.
+      The model orchestrating your work should not see a secret in the clear.
+      In local mode, credentials you store in Kvendra stay in an encrypted local
+      vault; when an operation needs one, the broker injects it at the moment of
+      use and runs the operation on the agent's behalf, returning only the
+      result. The boundary between the thing that reasons and the thing that
+      holds the keys is enforced by the broker, not left to the model — the only
+      way across it is the opt-in, audited <code>unsafe.raw_token</code> escape
+      hatch. An operation that is not on the signed allowlist simply does not
+      run.
     </p>
 
     <h2>A typed, server-side knowledge base</h2>
