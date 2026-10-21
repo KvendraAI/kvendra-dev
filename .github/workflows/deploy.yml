@@ -6,8 +6,17 @@
 # secret AWS_DEPLOY_ROLE_ARN (the repo is public; the ARN contains the account id).
 name: Deploy
 
+# Triggers. Since 2026-10-21 14:03Z GitHub has not emitted push events for the PR merges into
+# main of this repo (no PushEvent, no activity entry, no check suite for 7f764b4 and 3e373b5),
+# while pull request events still arrive. pull_request_target "closed" runs the workflow file
+# and the ref of the BASE branch (main), so it deploys main after a merge with the same OIDC
+# subject (environment production) and the same environment branch policy. It never checks
+# out the pull request head: the checkout below is pinned to main.
 on:
   push:
+    branches: [main]
+  pull_request_target:
+    types: [closed]
     branches: [main]
   workflow_dispatch:
 
@@ -28,7 +37,9 @@ env:
 jobs:
   deploy:
     name: Build and publish kvendra.dev
-    if: vars.KVD_DEV_DEPLOY_ENABLED == 'true'
+    if: >-
+      vars.KVD_DEV_DEPLOY_ENABLED == 'true' &&
+      (github.event_name != 'pull_request_target' || github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: production
@@ -37,6 +48,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # main as it is now (never the pull request head), also on pull_request_target.
+          ref: refs/heads/main
+          persist-credentials: false
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
