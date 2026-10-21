@@ -1,0 +1,10 @@
+{
+  "extraKnownMarketplaces": {
+    "kvendra-marketplace": {
+      "source": { "source": "github", "repo": "KvendraAI/kvendra-skills" }
+    }
+  },
+  "enabledPlugins": {
+    "kvendra-skills@kvendra-marketplace": true
+  }
+}
