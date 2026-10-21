@@ -90,7 +90,7 @@
       "entity_id": "CMP-KVD-PLATFORM",
       "entity_type": "CMP",
       "title": "Kvendra Platform",
-      "license": "AGPL-3.0",
+      "license": "AGPL-3.0-only",
       "language": "TypeScript (Node 20.x)",
       "stack": "Fastify HTTP server + PostgreSQL 16 + pgvector",
       "version": "0.1.0-alpha.0 (M1 alpha skeleton)",
@@ -175,7 +175,7 @@
         {
           "name": "Kvendra Platform",
           "role": "self-hosted single-tenant KB engine",
-          "license": "AGPL-3.0"
+          "license": "AGPL-3.0-only"
         },
         {
           "name": "Kvendra Skills",

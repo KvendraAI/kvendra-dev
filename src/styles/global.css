@@ -207,6 +207,17 @@ body {
   margin-bottom: var(--sp-5);
 }
 
+/* Narrow screens: a wide table scrolls inside its own box instead of widening the page
+   (ISSUE-KVD-D83010; the CLI primitives table overflowed by 97 px at 375). */
+@media (max-width: 720px) {
+  .kvd-prose table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .kvd-prose th,
 .kvd-prose td {
   text-align: left;

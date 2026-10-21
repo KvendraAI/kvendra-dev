@@ -1,0 +1,28 @@
+---
+/**
+ * Link from a component page to its publication on the public catalog /hub/<slug>/
+ * (ISSUE-KVD-D83010 part A, owner decision 2026-10-21): the docs here summarise, the
+ * publication carries the design decisions and the full manual. Never a /p/#token link.
+ * Copy approved by the owner via KGTM/Decisor; changes go back to KGTM.
+ */
+interface Props {
+  slug: 'kvendra-platform' | 'kvendra-cli' | 'kvendra-skills';
+}
+const { slug } = Astro.props;
+const href = `https://app.kvendra.cloud/hub/${slug}/`;
+---
+
+<p class="kvd-hublink">
+  <a href={href} data-hub-link={slug}>Read the design decisions and the full manual <span aria-hidden="true">↗</span></a>
+</p>
+
+<style>
+  .kvd-hublink {
+    margin: 1.25rem 0 1.75rem;
+    padding: 0.75rem 1rem;
+    border-left: 2px solid var(--accent, currentColor);
+  }
+  .kvd-hublink a {
+    font-weight: 600;
+  }
+</style>

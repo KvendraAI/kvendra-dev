@@ -231,9 +231,13 @@ Highlights of that path:
 - Build from source = `docker build` against the cloned repo (multi-stage Node 20 image); the reference stack's `scripts/build-from-source.sh` wraps it for regulated environments.
 - Published images are signed with Sigstore/cosign keyless (GitHub Actions OIDC) + an SBOM attestation (SPDX JSON). Verify with the reference stack's `scripts/verify.sh` or `cosign verify` / `cosign verify-attestation`.
 
+## Design decisions and manuals
+
+- Each component's design decisions and full manual are published at https://app.kvendra.cloud/hub/ (kvendra-platform, kvendra-cli, kvendra-skills).
+
 ## Licenses (open-core)
 
-- Platform: AGPL
+- Platform: AGPL-3.0-only
 - CLI: Apache-2.0
 - Skills: MIT
 - reference-stack: MIT
