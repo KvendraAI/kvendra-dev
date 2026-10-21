@@ -6,7 +6,7 @@ import HubLink from '../../components/docs/HubLink.astro';
 
 <DocsLayout
   title="Kvendra CLI — developer docs"
-  description="The Kvendra CLI: a Rust binary that runs a zero-knowledge vault and an MCP capability broker — your agent executes sensitive operations through it without ever seeing the credential."
+  description="The Kvendra CLI: a Rust binary that runs an encrypted local vault and an MCP capability broker — your agent executes sensitive operations through it without ever seeing the credential."
 >
     <span class="kvd-kicker">Reference</span>
     <h1>The Kvendra CLI</h1>
@@ -18,12 +18,12 @@ import HubLink from '../../components/docs/HubLink.astro';
       signed.
     </p>
     <p>
-      The CLI is where Kvendra meets your machine. It is a foundational security
-      layer — but <strong>optional to get started</strong>: the Platform and the
+      The CLI is where Kvendra meets your machine. It is an <strong>optional</strong>
+      security layer: the Platform and the
       Skills work without it, and you add it only when you want your agent to run
-      real ops (a git push, a deploy) without exposing your tokens. It is a single
-      Rust binary that does two jobs at once: it keeps your secrets in a local
-      <strong>zero-knowledge vault</strong>, and it acts as an
+      real ops (a git push, a deploy) without putting your tokens in the model's context by default. It is a single
+      Rust binary that does two jobs at once: it keeps your secrets in an
+      <strong>encrypted local vault</strong> (Kvendra's servers never see its contents), and it acts as an
       <strong>MCP capability broker</strong> that runs sensitive operations on
       behalf of a tool or agent — without ever handing the underlying credential
       to that caller.

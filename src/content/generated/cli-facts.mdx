@@ -1,8 +1,8 @@
 {/* generated from CMP-KVD-CLI — do not edit by hand */}
 
-The **Kvendra CLI** is a foundational security layer — optional to get started: a Rust (edition 2024, MSRV 1.85+) binary (`kvendra`, Apache-2.0).
+The **Kvendra CLI** is an optional security layer: a Rust (edition 2024, MSRV 1.85+) binary (`kvendra`, Apache-2.0).
 
-The kvendra CLI is a Rust binary: a foundational security layer that is optional to get started. It is a zero-knowledge local vault (Level 2) plus an MCP capability broker, an HMAC-signed audit log, a detection layer and a TUI — you add it when you want your agent to run real operations without exposing your tokens.
+The kvendra CLI is a Rust binary: an optional security layer. It is an encrypted local vault (software-only by default; see protection levels) plus an MCP capability broker, an HMAC-signed audit log, a detection layer and a TUI. Add it when you want your agent to run real operations without putting your tokens in the model's context by default.
 
 ## The open-core primitives
 
@@ -30,5 +30,5 @@ The vault lives in a per-user home directory and holds: a config file (HMAC side
 
 Cryptography: Argon2id KDF, AES-256-GCM AEAD, an HMAC chain over the audit log, a sentinel blob and recovery codes.
 
-Modes of operation: Local (default): zero-knowledge vault, secrets resolved locally. A remote-broker resolver mode exists for hosted deployments via OIDC PKCE login.
+Modes of operation: Local (default): encrypted local vault; secrets are resolved on your machine and Kvendra's servers never see them. A remote-broker mode exists for hosted deployments via OIDC PKCE login.
 

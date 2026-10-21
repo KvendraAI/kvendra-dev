@@ -10,7 +10,7 @@
       "language": "Rust (edition 2024, MSRV 1.85+)",
       "binary": "kvendra",
       "version": "0.5.0",
-      "summary": "The kvendra CLI is a Rust binary: a foundational security layer that is optional to get started. It is a zero-knowledge local vault (Level 2) plus an MCP capability broker, an HMAC-signed audit log, a detection layer and a TUI — you add it when you want your agent to run real operations without exposing your tokens.",
+      "summary": "The kvendra CLI is a Rust binary: an optional security layer. It is an encrypted local vault (software-only by default; see protection levels) plus an MCP capability broker, an HMAC-signed audit log, a detection layer and a TUI. Add it when you want your agent to run real operations without putting your tokens in the model's context by default.",
       "primitives": [
         {
           "id": "kvendra.git",
@@ -84,7 +84,7 @@
       "introspection": "kvendra capabilities (and --pretty) emits a canonical JSON manifest of the broker's primitive surface: broker_version, schema_version, and each primitive with its ops, destructive ops and vault profile pattern. Auth-less, read-only, no vault unlock required.",
       "vault_layout": "The vault lives in a per-user home directory and holds: a config file (HMAC sidecar), a SQLite audit database (WAL, HMAC-chained), Argon2id-hashed recovery codes, a sentinel blob, AES-256-GCM secret blobs per profile, and HMAC-signed allowlist YAMLs per profile.",
       "crypto": "Argon2id KDF, AES-256-GCM AEAD, an HMAC chain over the audit log, a sentinel blob and recovery codes.",
-      "modes": "Local (default): zero-knowledge vault, secrets resolved locally. A remote-broker resolver mode exists for hosted deployments via OIDC PKCE login."
+      "modes": "Local (default): encrypted local vault; secrets are resolved on your machine and Kvendra's servers never see them. A remote-broker mode exists for hosted deployments via OIDC PKCE login."
     },
     "CMP-KVD-PLATFORM": {
       "entity_id": "CMP-KVD-PLATFORM",
@@ -169,7 +169,7 @@
       "components": [
         {
           "name": "Kvendra CLI",
-          "role": "zero-knowledge local vault + capability broker",
+          "role": "encrypted local vault + capability broker",
           "license": "Apache-2.0"
         },
         {
