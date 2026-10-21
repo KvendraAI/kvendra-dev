@@ -20,14 +20,14 @@ env:
   PLAYWRIGHT_VERSION: 1.59.1
 
 jobs:
-  build-and-check:
-    name: Build, lint and site checks
+  ci:
+    name: ci
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: npm
@@ -46,7 +46,7 @@ jobs:
       - run: npm install --no-save @playwright/test@${{ env.PLAYWRIGHT_VERSION }}
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
@@ -56,7 +56,7 @@ jobs:
       - run: npx playwright test
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
           path: test-results/
