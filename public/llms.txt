@@ -220,7 +220,7 @@ The CLI is OPTIONAL and in ALPHA. Skills and the Platform work without it. Add i
 cargo install --locked kvendra
 ```
 
-It runs an MCP stdio broker plus an encrypted local vault, exposing seven primitives (git, github, npm, pypi, aws, http, shell) plus an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
+It runs an MCP stdio broker plus an encrypted local vault, exposing seven primitives (git, github, npm, pypi, aws, http, shell) plus an opt-in, audited unsafe.raw_token escape hatch. Sensitive operations route through the broker, so by default the orchestrating model does not see a raw token or key.
 
 ## Advanced / step-by-step (deferred)
 

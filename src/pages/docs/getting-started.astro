@@ -273,8 +273,8 @@ TXN-… committed`}</code></pre>
     It runs an MCP stdio broker plus an encrypted local vault, exposing seven
     primitives — git, github, npm, pypi, aws, http and shell — plus an
     <code>unsafe.raw_token</code> escape hatch. Sensitive operations are routed
-    through the broker so the model orchestrating the work never sees a raw
-    token or key.
+    through the broker so, by default, the model orchestrating the work does not
+    see a raw token or key.
   </p>
 
   <h2>How the pieces fit</h2>

@@ -6,7 +6,7 @@ import HubLink from '../../components/docs/HubLink.astro';
 
 <DocsLayout
   title="Kvendra CLI — developer docs"
-  description="The Kvendra CLI: a Rust binary that runs an encrypted local vault and an MCP capability broker — your agent executes sensitive operations through it without ever seeing the credential."
+  description="The Kvendra CLI: a Rust binary that runs an encrypted local vault and an MCP capability broker — by default, your agent executes sensitive operations through it without seeing the credential."
 >
     <span class="kvd-kicker">Reference</span>
     <h1>The Kvendra CLI</h1>
@@ -25,8 +25,9 @@ import HubLink from '../../components/docs/HubLink.astro';
       Rust binary that does two jobs at once: it keeps your secrets in an
       <strong>encrypted local vault</strong> (Kvendra's servers never see its contents), and it acts as an
       <strong>MCP capability broker</strong> that runs sensitive operations on
-      behalf of a tool or agent — without ever handing the underlying credential
-      to that caller.
+      behalf of a tool or agent — without handing the underlying credential
+      to that caller (unless you explicitly enable the audited
+      <code>unsafe.raw_token</code> escape hatch on a profile).
     </p>
 
     <HubLink slug="kvendra-cli" />
