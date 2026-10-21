@@ -22,3 +22,7 @@ src/content/.kb-cache/*
 
 # Agent boot-ROM — internal, never publish
 CLAUDE.md
+
+# Playwright site checks
+test-results/
+playwright-report/
