@@ -1,0 +1,72 @@
+# Deploy of kvendra.dev from GitHub (ISSUE-KVD-DEV-2C5055, STD-KVD-DEV-56B82C): on every push to
+# main, build the site and publish it with the OIDC role of Seguridad (no long-lived keys).
+#
+# Disabled until the role exists and the Decisor gives the OK: the job only runs when the
+# repository variable KVD_DEV_DEPLOY_ENABLED is "true". The role ARN comes from the variable
+# KVD_DEV_DEPLOY_ROLE_ARN of the "production" environment.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time. In-progress deploys are NOT cancelled: a sync cut halfway would leave
+# the bucket with a mix of two builds. A newer push waits and then publishes the latest main.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  BUCKET: s3://kvendra-dev-prod/
+  DISTRIBUTION_ID: E1RGPX9AVTVZC7
+
+jobs:
+  deploy:
+    name: Build and publish kvendra.dev
+    if: vars.KVD_DEV_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.KVD_DEV_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: kvendra-dev-deploy-${{ github.run_id }}
+
+      # No --delete: same as the broker deploy of the STD (old hashed assets stay harmlessly).
+      - run: aws s3 sync dist/ "$BUCKET" --no-progress
+
+      - name: Invalidate CloudFront and wait
+        run: |
+          id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" \
+            --paths '/*' --query Invalidation.Id --output text)
+          echo "invalidation $id"
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$id"
+
+      - name: Live smoke (GET)
+        run: |
+          for p in / /docs/ /docs/platform/ /docs/cli/ /docs/skills/ /llms.txt; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://kvendra.dev$p")
+            echo "$p $code"
+            test "$code" = 200
+          done
