@@ -259,8 +259,8 @@ TXN-… committed`}</code></pre>
   <h2>7. (Optional, and deferred) Add the CLI security broker</h2>
   <p class="kvd-callout">
     <strong>You do NOT need the CLI to start.</strong> Add it later only when you
-    want your agent to run real ops (a git push, a deploy) without exposing your
-    tokens. It is a foundational security layer — but optional to get started,
+    want your agent to run real ops (a git push, a deploy) without putting your
+    tokens in the model's context by default. It is an optional security layer,
     and everything above works without it.
   </p>
   <p>
@@ -270,7 +270,7 @@ TXN-… committed`}</code></pre>
   </p>
   <pre><code>cargo install --locked kvendra</code></pre>
   <p>
-    It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven
+    It runs an MCP stdio broker plus an encrypted local vault, exposing seven
     primitives — git, github, npm, pypi, aws, http and shell — plus an
     <code>unsafe.raw_token</code> escape hatch. Sensitive operations are routed
     through the broker so the model orchestrating the work never sees a raw

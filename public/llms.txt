@@ -15,7 +15,7 @@ Purpose: read this file and install + configure a self-hosted Kvendra end-to-end
 
 - Claude Code (host) talks to Kvendra Platform over MCP HTTP on port 7777 — this is the knowledge base (the required core).
 - Skills (a Claude Code plugin) run on top of the Platform, calling the same tools.
-- CLI & Broker (optional, alpha): a second MCP server over stdio that brokers credentialed operations behind a zero-knowledge vault.
+- CLI & Broker (optional, alpha): a second MCP server over stdio that brokers credentialed operations behind an encrypted local vault.
 
 What the reference stack spins up (containers): PostgreSQL 16 + pgvector (the knowledge base — entities + embedding vectors in one DB), the Kvendra Platform engine (the MCP server on :7777), a backup sidecar (scheduled pg_dump), and Ollama (local embeddings runtime, started by default; skipped with `--no-ollama`). Details: https://github.com/KvendraAI/kvendra-reference-stack
 
@@ -214,13 +214,13 @@ It routes the request to the right workflow. Payoff: ask it to plan something sm
 
 ## (Optional) Add the CLI security broker
 
-The CLI is OPTIONAL and in ALPHA. Skills and the Platform work without it. Add it only for brokered operations behind a zero-knowledge vault. Install it from crates.io (pre-built binaries are also on GitHub Releases):
+The CLI is OPTIONAL and in ALPHA. Skills and the Platform work without it. Add it only for brokered operations behind an encrypted local vault. Install it from crates.io (pre-built binaries are also on GitHub Releases):
 
 ```
 cargo install --locked kvendra
 ```
 
-It runs an MCP stdio broker plus a zero-knowledge vault, exposing seven primitives (git, github, npm, pypi, aws, http, shell) plus an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
+It runs an MCP stdio broker plus an encrypted local vault, exposing seven primitives (git, github, npm, pypi, aws, http, shell) plus an unsafe.raw_token escape hatch. Sensitive operations route through the broker, so the orchestrating model never sees a raw token or key.
 
 ## Advanced / step-by-step (deferred)
 

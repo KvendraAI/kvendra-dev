@@ -60,7 +60,7 @@ function renderCliFacts(cli) {
   return [
     `{/* generated from ${cli.entity_id} — do not edit by hand */}`,
     '',
-    `The **${cli.title}** is a foundational security layer — optional to get started: a ${cli.language} binary (\`${cli.binary}\`, ${cli.license}).`,
+    `The **${cli.title}** is an optional security layer: a ${cli.language} binary (\`${cli.binary}\`, ${cli.license}).`,
     '',
     mdxText(cli.summary),
     '',
