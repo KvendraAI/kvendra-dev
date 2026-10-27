@@ -109,6 +109,14 @@ test('every page has a distinct title', async ({ page }) => {
   ).toEqual([]);
 });
 
+test('every page declares a language on <html>', async ({ page }) => {
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const lang = await page.locator('html').getAttribute('lang');
+    expect(lang?.trim(), `${route} has no lang on <html>`).toBeTruthy();
+  }
+});
+
 test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   const r = await request.get('/sitemap.xml');
   expect(r.status()).toBe(200);
