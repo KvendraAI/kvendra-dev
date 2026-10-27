@@ -65,3 +65,13 @@ test('llms.txt links the publications catalog', async ({ request }) => {
   expect(r.status()).toBe(200);
   expect(await r.text()).toContain(HUB);
 });
+
+test('sitemap.xml lists exactly the served pages', async ({ request }) => {
+  const r = await request.get('/sitemap.xml');
+  expect(r.status()).toBe(200);
+  expect(r.headers()['content-type']).toContain('application/xml');
+  const paths = [...(await r.text()).matchAll(/<loc>([^<]+)<\/loc>/g)]
+    .map((m) => new URL(m[1]).pathname)
+    .sort();
+  expect(paths).toEqual([...ROUTES].sort());
+});
