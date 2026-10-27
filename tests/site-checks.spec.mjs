@@ -119,6 +119,25 @@ test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   expect(locs).toEqual(ROUTES);
 });
 
+test('every internal link resolves to a route or a served file', async ({ page, request }) => {
+  const SKIP = ['http://', 'https://', 'mailto:', 'tel:', '#'];
+  const known = new Set(ROUTES);
+  const served = new Map();
+  const broken = [];
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const hrefs = await page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')));
+    for (const href of new Set(hrefs)) {
+      if (SKIP.some((p) => href.startsWith(p)) || !href.startsWith('/')) continue;
+      const target = new URL(href, 'http://local').pathname;
+      if (known.has(target)) continue;
+      if (!served.has(target)) served.set(target, (await request.get(target)).status());
+      if (served.get(target) !== 200) broken.push(`${route} -> ${href} (${served.get(target)})`);
+    }
+  }
+  expect(broken, broken.join('; ')).toEqual([]);
+});
+
 test('robots.txt is served and its Sitemap line points at a served sitemap', async ({ request }) => {
   const r = await request.get('/robots.txt');
   expect(r.status()).toBe(200);
