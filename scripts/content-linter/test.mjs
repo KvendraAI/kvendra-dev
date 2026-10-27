@@ -21,6 +21,10 @@
  *   marker-names-own-rule.md    → PASS (marker not matched against the rule it names)
  *   marker-hides-secret.md      → FAIL (category a inside a marker is still reported)
  *
+ * Each fixture asserts the exact set of {category, ruleId, line} it produces
+ * (ISSUE-KVD-DEV-2C68AD): one finding too many, too few, or on the wrong line
+ * fails it.
+ *
  * Exit 0 if every fixture behaves as expected, 1 otherwise.
  */
 
@@ -32,56 +36,126 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(HERE, '__fixtures__');
 
 const cases = [
-  { file: 'secret-leak.md', expect: 'fail', wantCategory: 'a' },
-  { file: 'enterprise-leak.md', expect: 'fail', wantCategory: 'b' },
-  { file: 'clean.md', expect: 'pass' },
-  { file: 'pointer-allowed.astro', expect: 'pass' },
+  {
+    file: 'secret-leak.md',
+    expect: 'fail',
+    wantCategory: 'a',
+    want: [
+      { category: 'a', ruleId: 'aws-account-number', line: 6 },
+      { category: 'a', ruleId: 'aws-account-number', line: 9 },
+    ],
+  },
+  {
+    file: 'enterprise-leak.md',
+    expect: 'fail',
+    wantCategory: 'b',
+    want: [
+      { category: 'b', ruleId: 'paid-service', line: 6 },
+      { category: 'b', ruleId: 'sso-enterprise-auth', line: 6 },
+      { category: 'b', ruleId: 'private-repo-name', line: 9 },
+    ],
+  },
+  {
+    file: 'clean.md',
+    expect: 'pass',
+    want: [],
+  },
+  {
+    file: 'pointer-allowed.astro',
+    expect: 'pass',
+    want: [],
+  },
   {
     file: 'pointer-with-price.astro',
     expect: 'fail',
     wantCategory: 'b',
     wantRule: 'pricing-tier-sku (inside commercial pointer)',
+    want: [
+      { category: 'b', ruleId: 'pricing-tier-sku (inside commercial pointer)', line: 6 },
+      { category: 'b', ruleId: 'pointer-catalog-term', line: 8 },
+      { category: 'b', ruleId: 'pricing-tier-sku (inside commercial pointer)', line: 8 },
+    ],
   },
   {
     file: 'pointer-unmarked-link.astro',
     expect: 'fail',
     wantCategory: 'b',
     wantRule: 'commercial-link',
+    want: [
+      { category: 'b', ruleId: 'commercial-link', line: 4 },
+    ],
   },
   {
     file: 'pointer-two-per-context.md',
     expect: 'fail',
     wantCategory: 'b',
     wantRule: 'pointer-limit (max one per context)',
+    want: [
+      { category: 'b', ruleId: 'pointer-limit (max one per context)', line: 7 },
+    ],
   },
   {
     file: 'pointer-form.astro',
     expect: 'fail',
     wantCategory: 'b',
     wantRule: 'pointer-not-link-only',
+    want: [
+      { category: 'b', ruleId: 'pointer-not-link-only', line: 5 },
+    ],
   },
   {
     file: 'pointer-unclosed.md',
     expect: 'fail',
     wantCategory: 'b',
     wantRule: 'pointer-unclosed',
+    want: [
+      { category: 'b', ruleId: 'pointer-unclosed', line: 3 },
+    ],
   },
   {
     file: 'pointer-tier-sla.md',
     expect: 'fail',
     wantCategory: 'b',
     wantRule: 'pointer-catalog-term',
+    want: [
+      { category: 'b', ruleId: 'pointer-catalog-term', line: 4 },
+    ],
   },
-  { file: 'page-secret-leak.astro', expect: 'fail', wantCategory: 'a' },
-  { file: 'llms-business-leak.txt', expect: 'fail', wantCategory: 'b' },
-  { file: 'marker-names-own-rule.md', expect: 'pass' },
+  {
+    file: 'page-secret-leak.astro',
+    expect: 'fail',
+    wantCategory: 'a',
+    want: [
+      { category: 'a', ruleId: 'cloudfront-distribution-id', line: 4 },
+      { category: 'a', ruleId: 'abs-path-users', line: 4 },
+    ],
+  },
+  {
+    file: 'llms-business-leak.txt',
+    expect: 'fail',
+    wantCategory: 'b',
+    want: [
+      { category: 'b', ruleId: 'pricing-tier-sku', line: 2 },
+      { category: 'b', ruleId: 'sso-enterprise-auth', line: 2 },
+    ],
+  },
+  {
+    file: 'marker-names-own-rule.md',
+    expect: 'pass',
+    want: [],
+  },
   {
     file: 'marker-hides-secret.md',
     expect: 'fail',
     wantCategory: 'a',
     wantRule: 'abs-path-users',
+    want: [
+      { category: 'a', ruleId: 'abs-path-users', line: 1 },
+    ],
   },
 ];
+
+const key = (f) => `${f.category} · line ${f.line} · ${f.ruleId}`;
 
 let ok = true;
 
@@ -90,12 +164,12 @@ for (const c of cases) {
   const failed = findings.length > 0;
   const expectedFail = c.expect === 'fail';
 
+  // Exact set: every expected {category, ruleId, line} and nothing else.
+  const got = findings.map(key).sort();
+  const want = c.want.map(key).sort();
   let pass = failed === expectedFail;
-  if (pass && c.wantCategory) {
-    pass = findings.some((f) => f.category === c.wantCategory);
-  }
-  if (pass && c.wantRule) {
-    pass = findings.some((f) => f.ruleId === c.wantRule);
+  if (pass) {
+    pass = got.length === want.length && got.every((k, i) => k === want[i]);
   }
 
   const status = pass ? 'PASS' : 'FAIL';
@@ -106,8 +180,11 @@ for (const c of cases) {
   console.log(`  [${status}] ${c.file} — ${detail}`);
   if (!pass) {
     ok = false;
-    for (const f of findings) {
-      console.log(`        ${f.category} · line ${f.line} · ${f.ruleId}`);
+    for (const k of got) {
+      console.log(`        got:  ${k}`);
+    }
+    for (const k of want) {
+      console.log(`        want: ${k}`);
     }
   }
 }
