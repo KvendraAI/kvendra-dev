@@ -97,3 +97,16 @@ test('sitemap.xml lists exactly the built pages', async ({ request }) => {
     .sort();
   expect(locs).toEqual(ROUTES);
 });
+
+test('robots.txt is served and its Sitemap line points at a served sitemap', async ({ request }) => {
+  const r = await request.get('/robots.txt');
+  expect(r.status()).toBe(200);
+  const m = (await r.text()).match(/^Sitemap:\s*(\S+)\s*$/m);
+  expect(m, 'robots.txt has no Sitemap: line').not.toBeNull();
+  const sitemap = new URL(m[1]);
+  expect(sitemap.origin).toBe('https://kvendra.dev');
+  // Request the pathname: the suite talks to the local preview server, not production.
+  const s = await request.get(sitemap.pathname);
+  expect(s.status()).toBe(200);
+  expect(await s.text()).toContain('<urlset');
+});
