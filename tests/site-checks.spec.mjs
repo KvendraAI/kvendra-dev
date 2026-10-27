@@ -95,6 +95,20 @@ for (const route of ROUTES) {
   });
 }
 
+test('every page has a distinct title', async ({ page }) => {
+  const byTitle = new Map();
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const title = await page.title();
+    byTitle.set(title, [...(byTitle.get(title) ?? []), route]);
+  }
+  const collisions = [...byTitle].filter(([, routes]) => routes.length > 1);
+  expect(
+    collisions,
+    collisions.map(([title, routes]) => `"${title}": ${routes.join(', ')}`).join('; '),
+  ).toEqual([]);
+});
+
 test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   const r = await request.get('/sitemap.xml');
   expect(r.status()).toBe(200);
