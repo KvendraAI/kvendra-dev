@@ -85,6 +85,13 @@ for (const route of ROUTES) {
     expect(meta.ogDescription).toBe(meta.description);
     expect(meta.ogUrl).toBe(meta.canonical);
     expect(meta.twitterCard).toBe('summary');
+    expect(typeof meta.title).toBe('string');
+    expect(meta.title.trim()).not.toBe('');
+    expect(typeof meta.description).toBe('string');
+    expect(meta.description.trim()).not.toBe('');
+    expect(meta.canonical, `${route} has no canonical`).toBeTruthy();
+    // Compare the pathname only: the suite talks to the local preview server, not production.
+    expect(new URL(meta.canonical).pathname).toBe(route);
   });
 }
 
