@@ -17,6 +17,9 @@
  *   pointer-tier-sla.md         → FAIL (tier name / SLA promise inside the pointer)
  *   page-secret-leak.astro      → FAIL (category a in an .astro page)
  *   llms-business-leak.txt      → FAIL (category b in a .txt file)
+ * plus the linter-allow marker line itself (ISSUE-KVD-DEV-637E1B):
+ *   marker-names-own-rule.md    → PASS (marker not matched against the rule it names)
+ *   marker-hides-secret.md      → FAIL (category a inside a marker is still reported)
  *
  * Exit 0 if every fixture behaves as expected, 1 otherwise.
  */
@@ -71,6 +74,13 @@ const cases = [
   },
   { file: 'page-secret-leak.astro', expect: 'fail', wantCategory: 'a' },
   { file: 'llms-business-leak.txt', expect: 'fail', wantCategory: 'b' },
+  { file: 'marker-names-own-rule.md', expect: 'pass' },
+  {
+    file: 'marker-hides-secret.md',
+    expect: 'fail',
+    wantCategory: 'a',
+    wantRule: 'abs-path-users',
+  },
 ];
 
 let ok = true;
