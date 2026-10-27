@@ -150,10 +150,16 @@ function lintFile(file) {
     const prev = i > 0 ? lines[i - 1] : '';
     const allowMatch = prev.match(ALLOW_RE);
     const allowedRuleId = allowMatch ? allowMatch[1] : null;
+    // A marker line is not matched against the rule it names (its reason text
+    // may quote what that rule detects). Every other rule still applies, and
+    // category (a) is never excused, not even inside a marker.
+    const ownMarker = line.match(ALLOW_RE);
+    const markerRuleId = ownMarker ? ownMarker[1] : null;
 
     for (const { mod, escapable } of CATEGORIES) {
       for (const rule of mod.rules) {
         if (!rule.regex.test(line)) continue;
+        if (escapable && markerRuleId === rule.id) continue;
 
         // Category (a) is never escapable. If someone tries to escape it,
         // emit an extra finding flagging the illegal escape attempt.
