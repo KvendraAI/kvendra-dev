@@ -65,3 +65,25 @@ test('llms.txt links the publications catalog', async ({ request }) => {
   expect(r.status()).toBe(200);
   expect(await r.text()).toContain(HUB);
 });
+
+for (const route of ROUTES) {
+  test(`${route} has Open Graph and Twitter card metadata`, async ({ page }) => {
+    await page.goto(route);
+    const meta = await page.evaluate(() => {
+      const attr = (sel, name) => document.querySelector(sel)?.getAttribute(name);
+      return {
+        title: document.title,
+        description: attr('meta[name="description"]', 'content'),
+        canonical: attr('link[rel="canonical"]', 'href'),
+        ogTitle: attr('meta[property="og:title"]', 'content'),
+        ogDescription: attr('meta[property="og:description"]', 'content'),
+        ogUrl: attr('meta[property="og:url"]', 'content'),
+        twitterCard: attr('meta[name="twitter:card"]', 'content'),
+      };
+    });
+    expect(meta.ogTitle).toBe(meta.title);
+    expect(meta.ogDescription).toBe(meta.description);
+    expect(meta.ogUrl).toBe(meta.canonical);
+    expect(meta.twitterCard).toBe('summary');
+  });
+}
