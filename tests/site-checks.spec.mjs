@@ -60,6 +60,16 @@ for (const [route, slug] of [
   });
 }
 
+test('sitemap.xml lists exactly the routes in dist', async ({ request }) => {
+  const r = await request.get('/sitemap.xml');
+  expect(r.status()).toBe(200);
+  expect(r.headers()['content-type']).toContain('application/xml');
+  const paths = [...(await r.text()).matchAll(/<loc>([^<]+)<\/loc>/g)]
+    .map((m) => new URL(m[1].trim()).pathname)
+    .sort();
+  expect(paths).toEqual([...ROUTES].sort());
+});
+
 test('llms.txt links the publications catalog', async ({ request }) => {
   const r = await request.get('/llms.txt');
   expect(r.status()).toBe(200);
