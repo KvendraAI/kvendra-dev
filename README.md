@@ -11,7 +11,7 @@ A public, educational reference for the three open-core Kvendra components:
 
 - **Kvendra CLI** (Apache-2.0) — zero-knowledge vault + MCP capability broker.
 - **Kvendra Platform** (AGPL-3.0) — single-tenant KB engine you self-host.
-- **Kvendra Skills** (Apache-2.0) — the Claude Code plugin that orchestrates them.
+- **Kvendra Skills** (MIT) — the Claude Code plugin that orchestrates them.
 
 Plus conceptual material: architecture, the security/threat model, embeddings
 and semantic search, the entity model, the transaction (TXN) pipeline, and the
