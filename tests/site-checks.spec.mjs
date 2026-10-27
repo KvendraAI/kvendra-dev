@@ -87,3 +87,13 @@ for (const route of ROUTES) {
     expect(meta.twitterCard).toBe('summary');
   });
 }
+
+test('sitemap.xml lists exactly the built pages', async ({ request }) => {
+  const r = await request.get('/sitemap.xml');
+  expect(r.status()).toBe(200);
+  expect(r.headers()['content-type']).toContain('xml');
+  const locs = [...(await r.text()).matchAll(/<loc>([^<]+)<\/loc>/g)]
+    .map((m) => new URL(m[1].trim()).pathname)
+    .sort();
+  expect(locs).toEqual(ROUTES);
+});
