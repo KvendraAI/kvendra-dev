@@ -5,6 +5,9 @@
   "type": "module",
   "description": "kvendra.dev — open-core developer portal for Kvendra. Static Astro site generated from the Kvendra KB (dogfooding). MIT (code) + CC-BY-4.0 (content).",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "kb:fetch": "node scripts/kb-fetch.mjs",
     "kb:transform": "node scripts/kb-to-mdx.mjs",
