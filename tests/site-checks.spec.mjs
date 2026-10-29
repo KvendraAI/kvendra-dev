@@ -117,7 +117,22 @@ test('every page declares a language on <html>', async ({ page }) => {
   }
 });
 
-test('sitemap.xml lists exactly the built pages', async ({ request }) => {
+test('no page loads a resource over plain http', async ({ page }) => {
+  const offenders = [];
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const urls = await page.$$eval(
+      'script[src], link[href], img[src], iframe[src], source[src], video[src], audio[src]',
+      (els) => els.flatMap((el) => [el.getAttribute('src'), el.getAttribute('href')]),
+    );
+    for (const url of new Set(urls)) {
+      if (url && /^\s*http:\/\//i.test(url)) offenders.push(`${route} -> ${url}`);
+    }
+  }
+  expect(offenders, offenders.join('; ')).toEqual([]);
+});
+
+test('sitemap.xml lists exactly the built pages',async ({ request }) => {
   const r = await request.get('/sitemap.xml');
   expect(r.status()).toBe(200);
   expect(r.headers()['content-type']).toContain('xml');
