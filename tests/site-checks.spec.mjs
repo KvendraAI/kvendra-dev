@@ -129,7 +129,7 @@ test('every <img> has an alt attribute', async ({ page }) => {
   expect(missing, missing.join('; ')).toEqual([]);
 });
 
-test('sitemap.xml lists exactly the built pages',async ({ request }) => {
+test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   const r = await request.get('/sitemap.xml');
   expect(r.status()).toBe(200);
   expect(r.headers()['content-type']).toContain('xml');
