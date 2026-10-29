@@ -142,7 +142,7 @@ test('no page loads a resource over plain http', async ({ page }) => {
   expect(offenders, offenders.join('; ')).toEqual([]);
 });
 
-test('sitemap.xml lists exactly the built pages',async ({ request }) => {
+test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   const r = await request.get('/sitemap.xml');
   expect(r.status()).toBe(200);
   expect(r.headers()['content-type']).toContain('xml');
