@@ -127,6 +127,21 @@ test('every page declares a language on <html>', async ({ page }) => {
   }
 });
 
+test('no page loads a resource over plain http', async ({ page }) => {
+  const offenders = [];
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const urls = await page.$$eval(
+      'script[src], link[href], img[src], iframe[src], source[src], video[src], audio[src]',
+      (els) => els.flatMap((el) => [el.getAttribute('src'), el.getAttribute('href')]),
+    );
+    for (const url of new Set(urls)) {
+      if (url && /^\s*http:\/\//i.test(url)) offenders.push(`${route} -> ${url}`);
+    }
+  }
+  expect(offenders, offenders.join('; ')).toEqual([]);
+});
+
 test('every <img> has an alt attribute', async ({ page }) => {
   const missing = [];
   for (const route of ROUTES) {
