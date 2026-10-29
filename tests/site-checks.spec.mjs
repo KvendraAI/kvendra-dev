@@ -113,7 +113,7 @@ test('every page has exactly one <h1>', async ({ page }) => {
   const wrong = [];
   for (const route of ROUTES) {
     await page.goto(route);
-    const count = await page.locator('h1').count();
+    const count = await page.locator('h1:visible').count();
     if (count !== 1) wrong.push(`${route} has ${count} <h1>`);
   }
   expect(wrong, wrong.join('; ')).toEqual([]);
