@@ -142,6 +142,18 @@ test('no page loads a resource over plain http', async ({ page }) => {
   expect(offenders, offenders.join('; ')).toEqual([]);
 });
 
+test('every <img> has an alt attribute', async ({ page }) => {
+  const missing = [];
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const srcs = await page.$$eval('img:not([alt])', (imgs) =>
+      imgs.map((i) => i.getAttribute('src') ?? '(no src)'),
+    );
+    for (const src of srcs) missing.push(`${route}: ${src}`);
+  }
+  expect(missing, missing.join('; ')).toEqual([]);
+});
+
 test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   const r = await request.get('/sitemap.xml');
   expect(r.status()).toBe(200);
