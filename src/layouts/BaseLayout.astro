@@ -31,6 +31,8 @@ const {
   description = 'Open-core developer documentation for Kvendra: CLI, Platform and Skills. Architecture, security, embeddings, entities, pipelines and SQL.',
 } = Astro.props;
 
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://kvendra.dev');
+
 // Product menu — outcome-led entry points into the docs.
 const productItems = [
   { href: '/docs/platform/', label: 'KB Engine' },
@@ -60,7 +62,15 @@ const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/brand/kvendra-favicon.svg" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site ?? 'https://kvendra.dev')} />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kvendra" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
     <!-- Anti-FOUC: sync, pre-paint, same-origin (CSP-safe). -->
     <script is:inline src="/scripts/theme-init.js"></script>
     <!-- Nav dropdown close-behaviour: deferred, same-origin (CSP-safe). -->
