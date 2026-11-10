@@ -64,16 +64,20 @@ kvendra --version</code></pre>
     <p>Run this a single time to set up your local vault. It establishes:</p>
     <ul>
       <li>
-        a <strong>master password</strong>, from which the encryption key is
-        derived with <strong>Argon2id</strong> (a memory-hard KDF);
+        a <strong>master password</strong>, which protects (wraps) a random
+        vault key using <strong>Argon2id</strong> (a memory-hard KDF);
       </li>
       <li>
         a <strong>BIP-39 recovery phrase</strong> — 12 words, shown
         <strong>exactly once</strong> — for recovering access if you forget the
-        master password;
+        master password (vaults created with 0.9 or later, on the same machine;
+        restoring on a new machine from a backup plus the phrase is not
+        supported yet);
       </li>
       <li>
-        <strong>8 single-use recovery codes</strong> for critical actions.
+        <strong>8 single-use recovery codes</strong> that authorise
+        <code>kvendra config rebind-home</code>; they do not recover a forgotten
+        password.
       </li>
     </ul>
     <p>
@@ -112,7 +116,7 @@ kvendra --version</code></pre>
 
     <h3>5. <code>kvendra unlock</code> — in your terminal, not the agent</h3>
     <p>
-      Unlocking derives the key from your master password and writes a
+      Unlocking unwraps the vault key with your master password and writes a
       <strong>machine-bound session</strong> — tied to this host, user and home —
       with a time-to-live. You run this in a <strong>real terminal</strong>; the
       broker requires a genuine TTY, so a captured environment or an MCP client
@@ -125,9 +129,14 @@ kvendra --version</code></pre>
       </li>
       <li>
         Flags include <code>--ttl</code> (set the lifetime),
-        <code>--extend</code> (refresh an active session),
-        <code>--no-keychain</code>, and <code>--recover</code> (reset the master
-        password via the BIP-39 phrase).
+        <code>--extend</code> (refresh an active session), and
+        <code>--no-keychain</code>.
+      </li>
+      <li>
+        Forgot the master password? Run <code>kvendra recover</code> (the
+        12-word phrase plus a new password; vaults created with 0.9 or later,
+        on the same machine). To change a password you still know, run
+        <code>kvendra passwd</code>.
       </li>
     </ul>
 
@@ -298,9 +307,14 @@ kvendra vars unset &lt;key&gt;</code></pre>
     </p>
     <pre><code>kvendra audit --verify   # detects tampering row by row</code></pre>
     <p>
-      If access is ever lost, recovery has two layers: the
-      <strong>BIP-39 phrase</strong> resets the master password, and the
-      <strong>single-use recovery codes</strong> authorize critical actions.
+      If you forget the master password, the <strong>BIP-39 phrase</strong>
+      recovers access to this vault on this machine with
+      <code>kvendra recover</code> (vaults created with 0.9 or later). The
+      <strong>single-use recovery codes</strong> only authorise
+      <code>kvendra config rebind-home</code>; they do not recover a forgotten
+      password. A backup alone does not help with a forgotten password, and
+      restoring on a new machine from a backup plus the phrase is not
+      supported yet.
     </p>
 </DocsLayout>
 
