@@ -52,6 +52,22 @@ const communityItems = [
 ];
 
 const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
+
+// Follow links (footer) and Organization JSON-LD sameAs — same URLs, same order.
+const followLinks = [
+  { href: 'https://www.linkedin.com/company/kvendraai', label: 'LINKEDIN ↗' },
+  { href: 'https://x.com/kvendraai', label: 'X ↗' },
+  { href: 'https://github.com/KvendraAI', label: 'GITHUB ↗' },
+];
+
+const organizationJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Kvendra',
+  url: 'https://kvendra.dev/',
+  logo: 'https://kvendra.dev/brand/kvendra-mark.svg',
+  sameAs: followLinks.map((l) => l.href),
+});
 ---
 
 <!doctype html>
@@ -75,6 +91,8 @@ const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
     <script is:inline src="/scripts/theme-init.js"></script>
     <!-- Nav dropdown close-behaviour: deferred, same-origin (CSP-safe). -->
     <script is:inline defer src="/scripts/nav.js"></script>
+    <!-- Organization JSON-LD: a data block, not executed (CSP unchanged). -->
+    <script is:inline type="application/ld+json" set:html={organizationJsonLd} />
   </head>
   <body>
     <div class="kvd-shell">
@@ -114,6 +132,15 @@ const githubUrl = 'https://github.com/KvendraAI/kvendra-cli';
             <a href="/principles/">Principles</a>
             <a href="/docs/getting-started/">Get Started</a>
             <a href="/community/">Community</a>
+          </nav>
+          <nav class="kvd-footer__nav" aria-label="Follow">
+            {
+              followLinks.map((l) => (
+                <a href={l.href} target="_blank" rel="me noopener noreferrer">
+                  {l.label}
+                </a>
+              ))
+            }
           </nav>
           <span>
             CLI: Apache-2.0 · Skills: MIT · Platform: AGPL-3.0-only

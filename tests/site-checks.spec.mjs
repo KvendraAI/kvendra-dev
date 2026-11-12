@@ -195,3 +195,61 @@ test('robots.txt is served and its Sitemap line points at a served sitemap', asy
   expect(s.status()).toBe(200);
   expect(await s.text()).toContain('<urlset');
 });
+
+// Footer Follow links + Organization JSON-LD (ISSUE-KVD-DEV-A9D573).
+const FOLLOW = [
+  'https://www.linkedin.com/company/kvendraai',
+  'https://x.com/kvendraai',
+  'https://github.com/KvendraAI',
+];
+
+test('footer has the Follow links, in order, with rel="me"', async ({ page }) => {
+  await page.goto('/');
+  const links = await page.$$eval('footer nav[aria-label="Follow"] a', (as) =>
+    as.map((a) => ({
+      href: a.getAttribute('href'),
+      text: a.textContent.trim(),
+      rel: a.getAttribute('rel') ?? '',
+      target: a.getAttribute('target'),
+    })),
+  );
+  expect(links.map((l) => l.href)).toEqual(FOLLOW);
+  expect(links.map((l) => l.text)).toEqual(['LINKEDIN ↗', 'X ↗', 'GITHUB ↗']);
+  for (const l of links) {
+    expect(l.rel.split(/\s+/)).toContain('me');
+    expect(l.target).toBe('_blank');
+  }
+});
+
+test('every page has exactly one Organization JSON-LD with the sameAs links', async ({ page }) => {
+  const wrong = [];
+  for (const route of ROUTES) {
+    await page.goto(route);
+    const blocks = await page.$$eval('script[type="application/ld+json"]', (ss) =>
+      ss.map((s) => s.textContent),
+    );
+    if (blocks.length !== 1) {
+      wrong.push(`${route} has ${blocks.length} JSON-LD blocks`);
+      continue;
+    }
+    const data = JSON.parse(blocks[0]);
+    if (data['@type'] !== 'Organization' || data.name !== 'Kvendra')
+      wrong.push(`${route}: JSON-LD is not the Kvendra Organization`);
+    if (JSON.stringify(data.sameAs) !== JSON.stringify(FOLLOW))
+      wrong.push(`${route}: sameAs is ${JSON.stringify(data.sameAs)}`);
+  }
+  expect(wrong, wrong.join('; ')).toEqual([]);
+});
+
+for (const route of ['/', '/docs/cli/']) {
+  test(`${route} raises no CSP violation`, async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__cspViolations = [];
+      document.addEventListener('securitypolicyviolation', (e) =>
+        window.__cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`),
+      );
+    });
+    await page.goto(route, { waitUntil: 'networkidle' });
+    expect(await page.evaluate(() => window.__cspViolations)).toEqual([]);
+  });
+}
