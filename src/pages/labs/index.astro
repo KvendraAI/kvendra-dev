@@ -1,0 +1,287 @@
+---
+/**
+ * /labs/ — listing of technical experiments (ISSUE-KVD-DEV-983CE9, spec ISSUE-KVD-DEV-6EC74D).
+ *
+ * One card per lab, newest first; the whole card is one link. Search and status/tool chips are
+ * progressive enhancement: the controls ship `hidden` and /scripts/labs-filter.js (self-hosted,
+ * deferred, same-origin — CSP unchanged) reveals and wires them. Without JS the full list shows.
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { STATUS_LABEL, labNumber, isoDate, byNewest, DEFAULT_OG_IMAGE } from './_labs';
+
+const labs = (await getCollection('labs')).sort(byNewest);
+const tools = [...new Set(labs.flatMap((l) => l.data.tools))].sort();
+const statusChips = [
+  { value: 'all', label: 'All' },
+  { value: 'works', label: 'Works' },
+  { value: 'partial', label: 'Partial' },
+  { value: 'didnt-work', label: "Didn't work" },
+];
+const countText = (n: number) => `${n} ${n === 1 ? 'lab' : 'labs'}`;
+---
+
+<BaseLayout
+  title="Labs — Kvendra developer docs"
+  description="Technical experiments with Kvendra, written up openly: what we tried, with which versions, what worked, what didn't, and the limits."
+  ogImage={DEFAULT_OG_IMAGE}
+>
+  <div class="kvd-labs">
+    <span class="kvd-kicker">Labs</span>
+    <h1 class="kvd-labs__h1">Labs</h1>
+    <p class="kvd-labs__lede">
+      Technical experiments, written up openly: what we tried, with which versions, what worked,
+      what didn't, and the limits.
+    </p>
+
+    <div class="kvd-labs__controls" data-labs-controls hidden>
+      <label class="kvd-labs__search-label" for="labs-search">Search labs</label>
+      <input
+        id="labs-search"
+        class="kvd-labs__search"
+        type="search"
+        placeholder="Search title, result, versions or tool"
+        autocomplete="off"
+        data-labs-search
+      />
+      <div class="kvd-labs__chips" role="group" aria-label="Filter by status">
+        {
+          statusChips.map((c) => (
+            <button
+              type="button"
+              class="kvd-chip"
+              data-labs-status={c.value}
+              aria-pressed={c.value === 'all' ? 'true' : 'false'}
+            >
+              {c.label}
+            </button>
+          ))
+        }
+      </div>
+      <div class="kvd-labs__chips" role="group" aria-label="Filter by tool">
+        {
+          tools.map((t) => (
+            <button type="button" class="kvd-chip" data-labs-tool={t} aria-pressed="false">
+              {t}
+            </button>
+          ))
+        }
+      </div>
+      <p class="kvd-labs__count" aria-live="polite" data-labs-count>{countText(labs.length)}</p>
+    </div>
+
+    <ul class="kvd-labs__list" data-labs-list>
+      {
+        labs.map((lab) => (
+          <li
+            class="kvd-labs__item"
+            data-status={lab.data.status}
+            data-tools={lab.data.tools.join('|')}
+            data-search={[lab.data.title, lab.data.result, lab.data.versions, ...lab.data.tools]
+              .join(' ')
+              .toLowerCase()}
+          >
+            <a class="kvd-lab" href={`/labs/${lab.slug}/`}>
+              <span class="kvd-lab__top">
+                <span>LAB {labNumber(lab.data.number)}</span>
+                <span class="kvd-lab__status">{STATUS_LABEL[lab.data.status]}</span>
+                <time class="kvd-lab__date" datetime={isoDate(lab.data.datePublished)}>
+                  {isoDate(lab.data.datePublished)}
+                </time>
+              </span>
+              <h2 class="kvd-lab__title">{lab.data.title}</h2>
+              <span class="kvd-lab__result">{lab.data.result}</span>
+              <span class="kvd-lab__versions">{lab.data.versions}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="kvd-labs__empty" data-labs-empty hidden>No labs match.</p>
+  </div>
+
+  <script is:inline defer src="/scripts/labs-filter.js"></script>
+</BaseLayout>
+
+<style>
+  .kvd-labs {
+    max-width: 72ch;
+    margin-inline: auto;
+  }
+
+  .kvd-labs__h1 {
+    font-family: var(--display);
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: var(--ls-display);
+    line-height: 1.1;
+    margin-bottom: var(--sp-4);
+  }
+
+  .kvd-labs__lede {
+    color: var(--fog);
+    margin-bottom: var(--sp-6);
+  }
+
+  .kvd-labs__controls {
+    display: grid;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-5);
+  }
+
+  .kvd-labs__controls[hidden] {
+    display: none;
+  }
+
+  .kvd-labs__search-label {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--fog);
+  }
+
+  .kvd-labs__search {
+    width: 100%;
+    min-width: 0;
+    font: inherit;
+    font-size: var(--fs-sm);
+    color: var(--fg);
+    background: var(--bg-sunk);
+    border: 1px solid var(--line-soft);
+    padding: var(--sp-2) var(--sp-3);
+  }
+
+  .kvd-labs__search:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .kvd-labs__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+
+  .kvd-chip {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+    background: transparent;
+    border: 1px solid var(--line-soft);
+    padding: var(--sp-1) var(--sp-3);
+    cursor: pointer;
+    transition: color var(--dur-mecanico) var(--ease-mecanico),
+      border-color var(--dur-mecanico) var(--ease-mecanico);
+  }
+
+  .kvd-chip:hover,
+  .kvd-chip:focus-visible {
+    color: var(--fg);
+    border-color: currentColor;
+  }
+
+  .kvd-chip:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .kvd-chip[aria-pressed='true'] {
+    color: var(--fg);
+    border-color: var(--fg);
+  }
+
+  .kvd-labs__count {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+  }
+
+  .kvd-labs__list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--sp-4);
+  }
+
+  .kvd-labs__item[hidden] {
+    display: none;
+  }
+
+  .kvd-lab {
+    display: grid;
+    gap: var(--sp-2);
+    color: var(--fg);
+    border: 1px solid var(--line-soft);
+    padding: var(--sp-5);
+    transition: border-color var(--dur-mecanico) var(--ease-mecanico);
+  }
+
+  .kvd-lab:hover,
+  .kvd-lab:focus-visible {
+    border-color: currentColor;
+  }
+
+  .kvd-lab:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+
+  .kvd-lab__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-3);
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-tick);
+    text-transform: uppercase;
+    color: var(--fog);
+  }
+
+  .kvd-lab__status {
+    border: 1px solid var(--line-soft);
+    padding: 0 var(--sp-2);
+    letter-spacing: var(--ls-mono);
+  }
+
+  .kvd-lab__date {
+    margin-left: auto;
+    letter-spacing: var(--ls-mono);
+  }
+
+  .kvd-lab__title {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+    line-height: 1.2;
+    color: var(--phos-readable);
+    text-decoration: none;
+    text-underline-offset: 0.18em;
+  }
+
+  .kvd-lab:hover .kvd-lab__title,
+  .kvd-lab:focus-visible .kvd-lab__title {
+    text-decoration: underline;
+  }
+
+  .kvd-lab__result {
+    color: var(--fg);
+    font-size: var(--fs-body);
+  }
+
+  .kvd-lab__versions {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+  }
+
+  .kvd-labs__empty {
+    color: var(--fog);
+    padding-block: var(--sp-5);
+  }
+</style>

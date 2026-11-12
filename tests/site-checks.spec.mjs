@@ -164,6 +164,12 @@ test('sitemap.xml lists exactly the built pages', async ({ request }) => {
   expect(locs).toEqual(ROUTES);
 });
 
+// Internal links that are allowed to 404 until the page they point at ships. Keep this list short
+// and remove each entry when its page lands.
+//   /docs/codex/ — the Codex CLI guide, linked from Lab 01; built in L2 (ROAD-KVD-4C8C5D,
+//                  ISSUE-KVD-DEV-983CE9: "a 404 until then is acceptable").
+const PENDING_LINKS = new Set(['/docs/codex/']);
+
 test('every internal link resolves to a route or a served file', async ({ page, request }) => {
   const SKIP = ['http://', 'https://', 'mailto:', 'tel:', '#'];
   const known = new Set(ROUTES);
@@ -175,7 +181,7 @@ test('every internal link resolves to a route or a served file', async ({ page, 
     for (const href of new Set(hrefs)) {
       if (SKIP.some((p) => href.startsWith(p)) || !href.startsWith('/')) continue;
       const target = new URL(href, 'http://local').pathname;
-      if (known.has(target)) continue;
+      if (known.has(target) || PENDING_LINKS.has(target)) continue;
       if (!served.has(target)) served.set(target, (await request.get(target)).status());
       if (served.get(target) !== 200) broken.push(`${route} -> ${href} (${served.get(target)})`);
     }
@@ -225,14 +231,19 @@ test('every page has exactly one Organization JSON-LD with the sameAs links', as
   const wrong = [];
   for (const route of ROUTES) {
     await page.goto(route);
-    const blocks = await page.$$eval('script[type="application/ld+json"]', (ss) =>
-      ss.map((s) => s.textContent),
+    const all = await page.$$eval('script[type="application/ld+json"]', (ss) =>
+      ss.map((s) => JSON.parse(s.textContent)),
     );
+    // A lab page (/labs/<slug>/) also carries its own TechArticle block (ISSUE-KVD-DEV-983CE9).
+    const isLab = /^\/labs\/[^/]+\/$/.test(route);
+    const blocks = all.filter((d) => !(isLab && d['@type'] === 'TechArticle'));
     if (blocks.length !== 1) {
-      wrong.push(`${route} has ${blocks.length} JSON-LD blocks`);
+      wrong.push(`${route} has ${blocks.length} Organization JSON-LD blocks`);
       continue;
     }
-    const data = JSON.parse(blocks[0]);
+    if (all.length - blocks.length !== (isLab ? 1 : 0))
+      wrong.push(`${route} has an unexpected number of TechArticle blocks`);
+    const data = blocks[0];
     if (data['@type'] !== 'Organization' || data.name !== 'Kvendra')
       wrong.push(`${route}: JSON-LD is not the Kvendra Organization`);
     if (JSON.stringify(data.sameAs) !== JSON.stringify(FOLLOW))
