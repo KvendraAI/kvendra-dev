@@ -1,0 +1,71 @@
+---
+/**
+ * /labs/<slug>/ — one lab (ISSUE-KVD-DEV-983CE9). Single centred column, no docs sidebar; the
+ * Markdown body uses the existing .kvd-prose styles. TechArticle JSON-LD is emitted as a data
+ * block (type="application/ld+json", not executed — CSP unchanged).
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { STATUS_LABEL, labNumber, isoDate, DEFAULT_OG_IMAGE, type Lab } from './_labs';
+
+export async function getStaticPaths() {
+  const labs = await getCollection('labs');
+  return labs.map((lab) => ({ params: { slug: lab.slug }, props: { lab } }));
+}
+
+interface Props {
+  lab: Lab;
+}
+
+const { lab } = Astro.props;
+const { Content } = await lab.render();
+const d = lab.data;
+const url = new URL(`/labs/${lab.slug}/`, Astro.site ?? 'https://kvendra.dev').href;
+
+const techArticleJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: d.title,
+  description: d.description,
+  datePublished: isoDate(d.datePublished),
+  dateModified: isoDate(d.dateModified),
+  author: { '@type': 'Organization', name: 'Kvendra', url: 'https://kvendra.dev/' },
+  publisher: { '@type': 'Organization', name: 'Kvendra', url: 'https://kvendra.dev/' },
+  image: DEFAULT_OG_IMAGE,
+  url,
+  mainEntityOfPage: url,
+});
+---
+
+<BaseLayout
+  title={`Lab ${labNumber(d.number)}: ${d.title} — Kvendra Labs`}
+  description={d.description}
+  ogImage={DEFAULT_OG_IMAGE}
+  ogType="article"
+>
+  <script is:inline slot="head" type="application/ld+json" set:html={techArticleJsonLd} />
+  <article class="kvd-prose kvd-labpage">
+    <span class="kvd-kicker">Lab {labNumber(d.number)} · {STATUS_LABEL[d.status]}</span>
+    <h1>{d.title}</h1>
+    <p class="kvd-labpage__meta">
+      {d.versions} · hosted Kvendra MCP ·
+      <time datetime={isoDate(d.datePublished)}>{isoDate(d.datePublished)}</time>
+    </p>
+    <Content />
+  </article>
+</BaseLayout>
+
+<style>
+  .kvd-labpage {
+    margin-inline: auto;
+    /* A long bare URL (the hub link) wraps instead of widening the page at 375 px. */
+    overflow-wrap: anywhere;
+  }
+
+  .kvd-labpage__meta {
+    font-family: var(--mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--ls-mono);
+    color: var(--fog);
+  }
+</style>

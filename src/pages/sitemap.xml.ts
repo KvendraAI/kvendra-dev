@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
 
 // Static sitemap, generated at build time from the .astro pages (no extra
 // dependency). Every page lives at a trailing-slash directory URL because the
-// build uses format:'directory'.
+// build uses format:'directory'. Dynamic routes are added from their content
+// collections (labs: /labs/<slug>/).
 const pages = import.meta.glob('./**/*.astro', { eager: false });
 
 function toPath(file: string): string {
@@ -13,11 +15,13 @@ function toPath(file: string): string {
   return route ? `/${route}/` : '/';
 }
 
-export const GET: APIRoute = ({ site }) => {
+export const GET: APIRoute = async ({ site }) => {
   const base = site ?? new URL('https://kvendra.dev');
+  const labs = (await getCollection('labs')).map((l) => `/labs/${l.slug}/`);
   const paths = Object.keys(pages)
     .filter((f) => !/\[|\/_|^\.\/_|404\.astro$/.test(f))
     .map(toPath)
+    .concat(labs)
     .sort();
   const urls = paths
     .map((p) => `  <url><loc>${new URL(p, base).href}</loc></url>`)

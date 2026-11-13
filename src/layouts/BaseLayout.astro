@@ -24,11 +24,17 @@ import NavDropdown from '../components/layout/NavDropdown.astro';
 interface Props {
   title?: string;
   description?: string;
+  /** Absolute URL of a self-hosted Open Graph image (optional). */
+  ogImage?: string;
+  /** Open Graph type (default "website"; a lab page is an "article"). */
+  ogType?: string;
 }
 
 const {
   title = 'Kvendra — developer docs',
   description = 'Open-core developer documentation for Kvendra: CLI, Platform and Skills. Architecture, security, embeddings, entities, pipelines and SQL.',
+  ogImage,
+  ogType = 'website',
 } = Astro.props;
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://kvendra.dev');
@@ -79,11 +85,12 @@ const organizationJsonLd = JSON.stringify({
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/brand/kvendra-favicon.svg" />
     <link rel="canonical" href={canonicalUrl} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Kvendra" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -93,6 +100,8 @@ const organizationJsonLd = JSON.stringify({
     <script is:inline defer src="/scripts/nav.js"></script>
     <!-- Organization JSON-LD: a data block, not executed (CSP unchanged). -->
     <script is:inline type="application/ld+json" set:html={organizationJsonLd} />
+    <!-- Page-specific head additions (e.g. a lab's TechArticle JSON-LD data block). -->
+    <slot name="head" />
   </head>
   <body>
     <div class="kvd-shell">
@@ -104,6 +113,7 @@ const organizationJsonLd = JSON.stringify({
           <nav class="kvd-nav" aria-label="Primary">
             <NavDropdown label="Product" items={productItems} />
             <a href="/docs/">Docs</a>
+            <a href="/labs/">Labs</a>
             <NavDropdown label="Community" items={communityItems} />
             <a class="kvd-nav__disabled" aria-disabled="true">Blog</a>
             <a class="kvd-nav__github" href={githubUrl}>GitHub ★</a>
