@@ -9,6 +9,8 @@ import { join, relative, sep } from 'node:path';
 
 import { expect, test } from '@playwright/test';
 
+import { fallbackLessons, loadLessons, validateLessons } from '../scripts/academy-lessons.mjs';
+
 const DIST = new URL('../dist/', import.meta.url).pathname;
 
 function routes(dir = DIST) {
@@ -201,6 +203,7 @@ const FOLLOW = [
   'https://www.linkedin.com/company/kvendraai',
   'https://x.com/kvendraai',
   'https://github.com/KvendraAI',
+  'https://www.youtube.com/@kvendraai',
 ];
 
 test('footer has the Follow links, in order, with rel="me"', async ({ page }) => {
@@ -214,7 +217,7 @@ test('footer has the Follow links, in order, with rel="me"', async ({ page }) =>
     })),
   );
   expect(links.map((l) => l.href)).toEqual(FOLLOW);
-  expect(links.map((l) => l.text)).toEqual(['LINKEDIN ↗', 'X ↗', 'GITHUB ↗']);
+  expect(links.map((l) => l.text)).toEqual(['LINKEDIN ↗', 'X ↗', 'GITHUB ↗', 'YOUTUBE ↗']);
   for (const l of links) {
     expect(l.rel.split(/\s+/)).toContain('me');
     expect(l.target).toBe('_blank');
@@ -253,3 +256,108 @@ for (const route of ['/', '/docs/cli/']) {
     expect(await page.evaluate(() => window.__cspViolations)).toEqual([]);
   });
 }
+
+// Kvendra Academy (ISSUE-KVD-DEV-A5B92C). No test fetches an external host: the loader is
+// exercised with a mocked fetch, and the built page is checked against the local preview.
+const TRACK0 = [
+  ['0.1', 'What Kvendra is', 'PFK2HjjZugE'],
+  ['0.2', 'Install Kvendra in Claude Code', 'h5ldOdZjHVc'],
+  ['0.3', 'Your first session', '8UH09MDsdbI'],
+];
+
+test('academy fallback has the 3 Track 0 lessons', () => {
+  const lessons = fallbackLessons();
+  expect(lessons.map((l) => [l.number, l.title, l.youtube_id])).toEqual(TRACK0);
+  for (const l of lessons) {
+    expect(l.track).toBe('0');
+    expect(l.summary.length).toBeGreaterThan(0);
+  }
+});
+
+test('academy loader falls back to the repo data when the fetch fails', async () => {
+  const failing = async () => {
+    throw new Error('offline');
+  };
+  const r = await loadLessons({ fetchImpl: failing, offline: false });
+  expect(r.source).toBe('fallback');
+  expect(r.lessons.map((l) => l.youtube_id)).toEqual(TRACK0.map((t) => t[2]));
+  const notOk = async () => ({ ok: false, json: async () => ({}) });
+  expect((await loadLessons({ fetchImpl: notOk, offline: false })).source).toBe('fallback');
+});
+
+test('academy loader drops invalid fetched items and keeps only allowlisted fields', async () => {
+  const valid = {
+    track: '1',
+    number: '1.1',
+    title: 'Valid lesson',
+    summary: 'One line.',
+    youtube_id: 'abcdefghijk',
+    lab_href: '/docs/getting-started/',
+    extra: '<script>x</script>',
+  };
+  const payload = {
+    lessons: [
+      valid,
+      { ...valid, number: '1.2', youtube_id: 'short' },
+      { ...valid, number: '1.3', youtube_id: 'abcdefghijk&x' },
+      { ...valid, number: '1.4', lab_href: 'javascript:alert(1)' },
+      { ...valid, number: '1.5', lab_href: 'http://insecure.example/' },
+      { ...valid, number: '1.6', lab_href: '//evil.example/' },
+      { ...valid, number: '1.7', title: '' },
+      'not an object',
+      { ...valid, number: '1.8', lab_href: 'https://example.org/lab' },
+    ],
+  };
+  const mocked = async () => ({ ok: true, json: async () => payload });
+  const r = await loadLessons({ fetchImpl: mocked, offline: false });
+  expect(r.source).toBe('remote');
+  expect(r.lessons.map((l) => l.number)).toEqual(['1.1', '1.8']);
+  expect(Object.keys(r.lessons[0]).sort()).toEqual(
+    ['lab_href', 'number', 'summary', 'title', 'track', 'youtube_id'].sort(),
+  );
+  // A payload with no valid item at all falls back.
+  const allBad = async () => ({ ok: true, json: async () => ({ lessons: [{ title: 'x' }] }) });
+  expect((await loadLessons({ fetchImpl: allBad, offline: false })).source).toBe('fallback');
+  expect(validateLessons(null)).toEqual([]);
+});
+
+test('/academy/ renders the Track 0 lessons as cards linking to YouTube', async ({ page }) => {
+  await page.goto('/academy/');
+  await expect(page.locator('h1')).toHaveText('Kvendra Academy');
+  await expect(page.locator('a[href="https://www.youtube.com/@kvendraai"]').first()).toBeVisible();
+  for (const [number, title, id] of TRACK0) {
+    const card = page.locator(`.kvd-academy__card[data-lesson="${number}"]`);
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.kvd-academy__number')).toHaveText(number);
+    await expect(card.locator('.kvd-academy__title')).toHaveText(title);
+    await expect(card.locator('.kvd-academy__summary')).not.toBeEmpty();
+    const watch = card.locator(`a[href="https://www.youtube.com/watch?v=${id}"]`);
+    await expect(watch).toHaveText(/Watch on YouTube/);
+    expect((await watch.getAttribute('rel')) ?? '').toContain('noopener');
+  }
+  await expect(page.locator('.kvd-academy iframe, .kvd-academy img')).toHaveCount(0);
+});
+
+test('/academy/ makes no third-party request', async ({ page, baseURL }) => {
+  const origin = new URL(baseURL).origin;
+  const external = [];
+  page.on('request', (r) => {
+    const u = new URL(r.url());
+    if (!['data:', 'blob:'].includes(u.protocol) && u.origin !== origin) external.push(r.url());
+  });
+  await page.goto('/academy/', { waitUntil: 'networkidle' });
+  expect(external).toEqual([]);
+});
+
+test('header nav links to /academy/', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('nav[aria-label="Primary"] a[href="/academy/"]')).toHaveText('Academy');
+});
+
+test('getting started links the install video', async ({ page }) => {
+  await page.goto('/docs/getting-started/');
+  const link = page.locator('a[href="https://www.youtube.com/watch?v=h5ldOdZjHVc"]');
+  await expect(link).toHaveCount(1);
+  await expect(link).toHaveText('0.2 Install Kvendra in Claude Code');
+  await expect(link.locator('xpath=..')).toContainText('Prefer video?');
+});

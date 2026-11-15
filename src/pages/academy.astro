@@ -1,0 +1,115 @@
+---
+/**
+ * /academy/ — Kvendra Academy (ISSUE-KVD-DEV-A5B92C, ROAD-KVD-387AAA).
+ *
+ * Lessons are loaded at build time (scripts/academy-lessons.mjs): the published lesson list
+ * when reachable, otherwise the fallback committed in src/data/. No embed, no remote
+ * thumbnails, no third-party scripts: each lesson is a branded card that links out to YouTube.
+ * Lesson text is rendered as text only (no HTML sinks).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CHANNEL_URL, loadLessons } from '../../scripts/academy-lessons.mjs';
+
+const { lessons } = await loadLessons();
+
+const TRACK_NAMES: Record<string, string> = { '0': 'Start here' };
+
+const tracks = [...new Set(lessons.map((l) => l.track))].map((track) => ({
+  track,
+  name: TRACK_NAMES[track],
+  lessons: lessons.filter((l) => l.track === track),
+}));
+
+const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
+---
+
+<BaseLayout
+  title="Academy — Kvendra developer docs"
+  description="Kvendra Academy: short video lessons, track by track, from what Kvendra is to your first session, with written labs where they exist."
+>
+  <article class="kvd-prose kvd-academy">
+    <span class="kvd-kicker">Academy</span>
+    <h1>Kvendra Academy</h1>
+    <p>
+      Short video lessons, in order. Each one opens on YouTube; where a lesson
+      has a written lab, it is linked next to the video. All lessons are on the
+      <a href={CHANNEL_URL} rel="noopener">Kvendra Academy channel on YouTube ↗</a>.
+    </p>
+
+    {
+      tracks.map((t) => (
+        <section class="kvd-academy__track" aria-labelledby={`track-${t.track}`}>
+          <h2 id={`track-${t.track}`}>
+            Track {t.track}
+            {t.name && ` · ${t.name}`}
+          </h2>
+          <ol class="kvd-academy__lessons">
+            {t.lessons.map((l) => (
+              <li class="kvd-academy__card" data-lesson={l.number} data-youtube-id={l.youtube_id}>
+                <span class="kvd-academy__number">{l.number}</span>
+                <h3 class="kvd-academy__title">{l.title}</h3>
+                <p class="kvd-academy__summary">{l.summary}</p>
+                <p class="kvd-academy__links">
+                  <a href={watchUrl(l.youtube_id)} rel="noopener">
+                    Watch on YouTube ↗
+                  </a>
+                  {l.lab_href && <a href={l.lab_href}>Written lab →</a>}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))
+    }
+  </article>
+
+  <style>
+    .kvd-academy__lessons {
+      list-style: none;
+      padding: 0;
+      margin: var(--sp-4) 0 var(--sp-7);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+      gap: var(--sp-4);
+    }
+
+    .kvd-academy__card {
+      margin: 0;
+      padding: var(--sp-5);
+      border: 1px solid var(--line);
+      border-top: 2px solid var(--phos);
+      background: var(--bg-elev);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-2);
+      min-width: 0;
+    }
+
+    .kvd-academy__number {
+      font-family: var(--mono);
+      font-size: var(--fs-xs);
+      letter-spacing: var(--ls-mono);
+      color: var(--fog);
+    }
+
+    .kvd-academy__title {
+      margin: 0;
+      font-size: var(--fs-body);
+    }
+
+    .kvd-academy__summary {
+      margin: 0;
+      font-size: var(--fs-sm);
+      color: var(--fog);
+      flex: 1;
+    }
+
+    .kvd-academy__links {
+      margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-2) var(--sp-4);
+      font-size: var(--fs-sm);
+    }
+  </style>
+</BaseLayout>
