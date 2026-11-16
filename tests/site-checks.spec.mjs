@@ -335,16 +335,29 @@ test('academy loader drops invalid fetched items and keeps only allowlisted fiel
 test('/academy/ renders the Track 0 lessons as cards linking to YouTube', async ({ page }) => {
   await page.goto('/academy/');
   await expect(page.locator('h1')).toHaveText('Kvendra Academy');
-  // The CI runner cannot reach kvendra.com, so the build renders the repo fallback: 3 lessons.
-  if ((await page.locator('.kvd-academy').getAttribute('data-academy-source')) === 'fallback') {
-    await expect(page.locator('.kvd-academy__card')).toHaveCount(TRACK0.length);
-  }
   await expect(page.locator('a[href="https://www.youtube.com/@kvendraai"]').first()).toBeVisible();
-  for (const [number, title, id] of TRACK0) {
+  // The page is built once, before the tests. When the build could not reach kvendra.com it
+  // renders the repo fallback, which must be exactly Track 0. When the build did reach it (a
+  // runner with network), the page renders the published list instead: its content is not the
+  // fallback's (the fallback itself is checked by the unit test above), so every rendered card
+  // is checked for the same structure, with the link built from its own YouTube id.
+  const source = await page.locator('.kvd-academy').getAttribute('data-academy-source');
+  const expected =
+    source === 'fallback'
+      ? TRACK0
+      : await page
+          .locator('.kvd-academy__card')
+          .evaluateAll((cards) => cards.map((c) => [c.dataset.lesson, null, c.dataset.youtubeId]));
+  expect(['fallback', 'remote']).toContain(source);
+  expect(expected.length).toBeGreaterThan(0);
+  await expect(page.locator('.kvd-academy__card')).toHaveCount(expected.length);
+  for (const [number, title, id] of expected) {
+    expect(id).toMatch(/^[A-Za-z0-9_-]{11}$/);
     const card = page.locator(`.kvd-academy__card[data-lesson="${number}"]`);
     await expect(card).toHaveCount(1);
     await expect(card.locator('.kvd-academy__number')).toHaveText(number);
-    await expect(card.locator('.kvd-academy__title')).toHaveText(title);
+    if (title) await expect(card.locator('.kvd-academy__title')).toHaveText(title);
+    else await expect(card.locator('.kvd-academy__title')).not.toBeEmpty();
     await expect(card.locator('.kvd-academy__summary')).not.toBeEmpty();
     const watch = card.locator(`a[href="https://www.youtube.com/watch?v=${id}"]`);
     await expect(watch).toHaveText(/Watch on YouTube/);
