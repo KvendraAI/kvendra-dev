@@ -311,3 +311,24 @@ for (const route of ['/labs/', LAB, LAB2]) {
     expect(overflow).toBe(0);
   });
 }
+
+// Nav current page (ISSUE-KVD-DEV-6A0484): "Labs" is current on /labs/ and /labs/<slug>/,
+// "Docs" on docs pages, never both. The nav wraps at 375 px (there is no separate mobile menu),
+// so the same links are checked at the mobile and the desktop width.
+for (const width of [375, 1440]) {
+  for (const route of ['/labs/', LAB]) {
+    test(`nav marks "Labs", not "Docs", as current on ${route} at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(route);
+      await expect(page.locator('nav.kvd-nav > a[href="/labs/"]')).toHaveAttribute('aria-current', 'page');
+      await expect(page.locator('nav.kvd-nav > a[href="/docs/"]')).not.toHaveAttribute('aria-current', /.*/);
+    });
+  }
+
+  test(`nav marks "Docs", not "Labs", as current on /docs/ at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/docs/');
+    await expect(page.locator('nav.kvd-nav > a[href="/docs/"]')).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('nav.kvd-nav > a[href="/labs/"]')).not.toHaveAttribute('aria-current', /.*/);
+  });
+}
