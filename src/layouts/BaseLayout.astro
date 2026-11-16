@@ -42,6 +42,10 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://kvendra.
 // Academy (ISSUE-KVD-DEV-75677F): header and footer link, shown as current on /academy/.
 const academyCurrent = Astro.url.pathname.startsWith('/academy/') ? 'page' : undefined;
 
+// Docs and Labs (ISSUE-KVD-DEV-6A0484): same mechanism, current on /docs/* and on /labs/*.
+const docsCurrent = Astro.url.pathname.startsWith('/docs/') ? 'page' : undefined;
+const labsCurrent = Astro.url.pathname.startsWith('/labs/') ? 'page' : undefined;
+
 // Product menu — outcome-led entry points into the docs.
 const productItems = [
   { href: '/docs/platform/', label: 'KB Engine' },
@@ -116,8 +120,8 @@ const organizationJsonLd = JSON.stringify({
           </a>
           <nav class="kvd-nav" aria-label="Primary">
             <NavDropdown label="Product" items={productItems} />
-            <a href="/docs/">Docs</a>
-            <a href="/labs/">Labs</a>
+            <a href="/docs/" aria-current={docsCurrent}>Docs</a>
+            <a href="/labs/" aria-current={labsCurrent}>Labs</a>
             <a href="/academy/" aria-current={academyCurrent}>Academy</a>
             <NavDropdown label="Community" items={communityItems} />
             <a class="kvd-nav__disabled" aria-disabled="true">Blog</a>
