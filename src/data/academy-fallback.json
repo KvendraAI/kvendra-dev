@@ -1,0 +1,25 @@
+{
+  "lessons": [
+    {
+      "track": "0",
+      "number": "0.1",
+      "title": "What Kvendra is",
+      "summary": "An overview of Kvendra and the problem it addresses for AI coding agents.",
+      "youtube_id": "PFK2HjjZugE"
+    },
+    {
+      "track": "0",
+      "number": "0.2",
+      "title": "Install Kvendra in Claude Code",
+      "summary": "Installing Kvendra and connecting it to Claude Code.",
+      "youtube_id": "h5ldOdZjHVc"
+    },
+    {
+      "track": "0",
+      "number": "0.3",
+      "title": "Your first session",
+      "summary": "A first working session with Kvendra from start to finish.",
+      "youtube_id": "8UH09MDsdbI"
+    }
+  ]
+}
