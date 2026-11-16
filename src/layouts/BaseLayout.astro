@@ -39,6 +39,9 @@ const {
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? 'https://kvendra.dev');
 
+// Academy (ISSUE-KVD-DEV-75677F): header and footer link, shown as current on /academy/.
+const academyCurrent = Astro.url.pathname.startsWith('/academy/') ? 'page' : undefined;
+
 // Product menu — outcome-led entry points into the docs.
 const productItems = [
   { href: '/docs/platform/', label: 'KB Engine' },
@@ -64,6 +67,7 @@ const followLinks = [
   { href: 'https://www.linkedin.com/company/kvendraai', label: 'LINKEDIN ↗' },
   { href: 'https://x.com/kvendraai', label: 'X ↗' },
   { href: 'https://github.com/KvendraAI', label: 'GITHUB ↗' },
+  { href: 'https://www.youtube.com/@kvendraai', label: 'YOUTUBE ↗', icon: 'youtube' },
 ];
 
 const organizationJsonLd = JSON.stringify({
@@ -114,6 +118,7 @@ const organizationJsonLd = JSON.stringify({
             <NavDropdown label="Product" items={productItems} />
             <a href="/docs/">Docs</a>
             <a href="/labs/">Labs</a>
+            <a href="/academy/" aria-current={academyCurrent}>Academy</a>
             <NavDropdown label="Community" items={communityItems} />
             <a class="kvd-nav__disabled" aria-disabled="true">Blog</a>
             <a class="kvd-nav__github" href={githubUrl}>GitHub ★</a>
@@ -141,12 +146,28 @@ const organizationJsonLd = JSON.stringify({
             <a href="/use-cases/">Use cases</a>
             <a href="/principles/">Principles</a>
             <a href="/docs/getting-started/">Get Started</a>
+            <a href="/academy/" aria-current={academyCurrent}>Academy</a>
             <a href="/community/">Community</a>
           </nav>
           <nav class="kvd-footer__nav" aria-label="Follow">
             {
               followLinks.map((l) => (
                 <a href={l.href} target="_blank" rel="me noopener noreferrer">
+                  {l.icon === 'youtube' && (
+                    <svg
+                      class="kvd-footer__icon"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"
+                      />
+                    </svg>
+                  )}
                   {l.label}
                 </a>
               ))
@@ -190,6 +211,16 @@ const organizationJsonLd = JSON.stringify({
         display: flex;
         flex-wrap: wrap;
         gap: var(--sp-4);
+      }
+
+      .kvd-footer__nav a[aria-current='page'] {
+        color: var(--fg);
+      }
+
+      .kvd-footer__icon {
+        display: inline-block;
+        vertical-align: -2px;
+        margin-right: var(--sp-1);
       }
 
       .kvd-nav__cta {
