@@ -1,5 +1,6 @@
 // Labs section checks (ISSUE-KVD-DEV-983CE9; spec ISSUE-KVD-DEV-6EC74D; copy DOC-KGTM-3585F8 §C).
 // Lab 02 (ISSUE-KVD-DEV-150C72; copy DOC-KGTM-CF2CE1 v3): second card, partial, no table.
+// Lab 02 update 2026-11-17 (ISSUE-KVD-DEV-57A74E; copy DOC-KGTM-6D1913): "updated" date, new section.
 // /labs/ listing (cards, search, chips, aria-live count, no-JS fallback), the Lab 01 page
 // (8 headings in order, table, curly quotes, TechArticle JSON-LD), the "Labs" nav entry,
 // CSP and 375 px overflow.
@@ -14,7 +15,9 @@ const RESULT =
 const LAB2 = '/labs/docker-ollama/';
 const TITLE2 = 'Kvendra Platform with Docker and Ollama';
 const RESULT2 =
-  'The self-hosted engine, Ollama and a local agent connected; an 8B model on a laptop CPU was too slow to finish, and the embeddings run is still pending.';
+  'The self-hosted engine, Ollama and a local agent connected. An 8B model on a laptop CPU was too slow for the agent; the full stack and embeddings work on a CPU.';
+const VERSIONS2 =
+  'Ollama 0.24.0 · Llama 3.1 8B · mxbai-embed-large · Kvendra Platform 0.1.0-alpha.2';
 
 // A strict script policy applied to the served HTML: scripts from 'self' only, no third-party
 // origin, and no inline script except the ones the home page already ships site-wide (allowed by
@@ -43,6 +46,7 @@ test.describe('/labs/ listing', () => {
     await expect(card.locator('.kvd-lab__date')).toHaveText('2026-11-12');
     await expect(card.locator('.kvd-lab__result')).toHaveText(RESULT);
     await expect(card.locator('.kvd-lab__versions')).toHaveText('Codex CLI 0.167.2');
+    await expect(card.locator('.kvd-lab__updated')).toHaveCount(0);
     await expect(card).toContainText('LAB 01');
 
     const card2 = cards.nth(1);
@@ -51,7 +55,9 @@ test.describe('/labs/ listing', () => {
     await expect(card2.locator('.kvd-lab__status')).toHaveText('partial');
     await expect(card2.locator('.kvd-lab__date')).toHaveText('2026-05-21');
     await expect(card2.locator('.kvd-lab__result')).toHaveText(RESULT2);
-    await expect(card2.locator('.kvd-lab__versions')).toHaveText('Ollama 0.24.0 · Llama 3.1 8B');
+    await expect(card2.locator('.kvd-lab__versions')).toHaveText(VERSIONS2);
+    await expect(card2.locator('.kvd-lab__updated')).toHaveText('updated 2026-11-17');
+    await expect(card2.locator('.kvd-lab__updated time[datetime="2026-11-17"]')).toHaveCount(1);
     await expect(card2).toContainText('LAB 02');
   });
 
@@ -156,6 +162,7 @@ test('/labs/codex-cli/ has the 8 section headings in order, the table and curly 
   await expect(page.locator('.kvd-labpage__meta')).toHaveText(
     'Codex CLI 0.167.2 · hosted Kvendra MCP · 2026-11-12',
   );
+  await expect(page.locator('.kvd-labpage__meta')).not.toContainText('updated');
   // Smart apostrophes are typographic; compare with straight ones.
   const h2 = (await page.locator('article h2').allTextContents()).map((t) =>
     t.trim().replace(/’/g, "'"),
@@ -199,12 +206,16 @@ test('/labs/codex-cli/ TechArticle JSON-LD parses', async ({ page }) => {
   expect(article.author).toMatchObject({ '@type': 'Organization', name: 'Kvendra' });
 });
 
-test('/labs/docker-ollama/ has its 9 headings in order, no table and the right links', async ({
+test('/labs/docker-ollama/ has its 10 headings in order, no table and the right links', async ({
   page,
 }) => {
   await page.goto(LAB2);
   await expect(page.locator('h1')).toHaveText(TITLE2);
   await expect(page.locator('.kvd-kicker')).toHaveText('Lab 02 · partial');
+  await expect(page.locator('.kvd-labpage__meta')).toHaveText(
+    `${VERSIONS2} · 2026-05-21, updated 2026-11-17`,
+  );
+  await expect(page.locator('.kvd-labpage__meta time[datetime="2026-11-17"]')).toHaveCount(1);
   const h2 = (await page.locator('article h2').allTextContents()).map((t) =>
     t.trim().replace(/’/g, "'"),
   );
@@ -214,6 +225,7 @@ test('/labs/docker-ollama/ has its 9 headings in order, no table and the right l
     'What we did',
     'Result: partial.',
     'What we learned',
+    'Update — 2026-11-17: the two items we had not run',
     'Limits',
     'Next',
     'Reproduce it',
@@ -223,7 +235,11 @@ test('/labs/docker-ollama/ has its 9 headings in order, no table and the right l
 
   const text = await page.locator('article').innerText();
   for (const sub of ['What worked:', "What didn’t:", 'Not run yet:']) expect(text).toContain(sub);
-  expect(text).toContain('This lab will be updated with those results.');
+  expect(text).not.toContain('This lab will be updated with those results.');
+  expect(text).toContain('./scripts/smoke.sh');
+  expect(text).toContain('kvendra-reference-stack');
+  expect(text).toContain('“how do people log in?”');
+  expect(text).toContain('“restore data after a disaster”');
   expect(text).toContain('“Installation with Docker Compose”');
   expect(text).toContain('“Embeddings providers”');
   expect(text).not.toMatch(/"Installation with Docker Compose"|"Embeddings providers"/);
@@ -244,7 +260,8 @@ test('/labs/docker-ollama/ TechArticle JSON-LD parses', async ({ page }) => {
   expect(article, 'no TechArticle JSON-LD').toBeTruthy();
   expect(article.headline).toBe(TITLE2);
   expect(article.datePublished).toBe('2026-05-21');
-  expect(article.dateModified).toBe('2026-05-21');
+  expect(article.dateModified).toBe('2026-11-17');
+  expect(article.description).toBe(RESULT2);
 });
 
 test('/labs/ and the lab have SEO metadata and are in the sitemap', async ({ page, request }) => {

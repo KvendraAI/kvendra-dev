@@ -88,6 +88,12 @@ const countText = (n: number) => `${n} ${n === 1 ? 'lab' : 'labs'}`;
                 <time class="kvd-lab__date" datetime={isoDate(lab.data.datePublished)}>
                   {isoDate(lab.data.datePublished)}
                 </time>
+                {isoDate(lab.data.dateModified) !== isoDate(lab.data.datePublished) && (
+                  <span class="kvd-lab__updated">
+                    updated{' '}
+                    <time datetime={isoDate(lab.data.dateModified)}>{isoDate(lab.data.dateModified)}</time>
+                  </span>
+                )}
               </span>
               <h2 class="kvd-lab__title">{lab.data.title}</h2>
               <span class="kvd-lab__result">{lab.data.result}</span>
@@ -249,6 +255,10 @@ const countText = (n: number) => `${n} ${n === 1 ? 'lab' : 'labs'}`;
 
   .kvd-lab__date {
     margin-left: auto;
+    letter-spacing: var(--ls-mono);
+  }
+
+  .kvd-lab__updated {
     letter-spacing: var(--ls-mono);
   }
 

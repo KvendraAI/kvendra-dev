@@ -6,6 +6,7 @@ result: Codex CLI connected, bootstrapped from a 30-line AGENTS.md and wrote dec
 status: works
 tools: ["Codex"]
 versions: Codex CLI 0.167.2
+metaSuffix: hosted Kvendra MCP
 datePublished: 2026-11-12
 dateModified: 2026-11-12
 description: "Can an agent that isn't Claude Code use the same Kvendra knowledge base? Codex CLI connected over MCP, bootstrapped from a 30-line AGENTS.md and wrote decisions to the knowledge base."

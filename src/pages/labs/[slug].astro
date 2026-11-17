@@ -48,8 +48,10 @@ const techArticleJsonLd = JSON.stringify({
     <span class="kvd-kicker">Lab {labNumber(d.number)} · {STATUS_LABEL[d.status]}</span>
     <h1>{d.title}</h1>
     <p class="kvd-labpage__meta">
-      {d.versions} · hosted Kvendra MCP ·
-      <time datetime={isoDate(d.datePublished)}>{isoDate(d.datePublished)}</time>
+      {d.versions}{d.metaSuffix && ` · ${d.metaSuffix}`} ·
+      <time datetime={isoDate(d.datePublished)}>{isoDate(d.datePublished)}</time>{isoDate(d.dateModified) !== isoDate(d.datePublished) && (
+        <>, updated <time datetime={isoDate(d.dateModified)}>{isoDate(d.dateModified)}</time></>
+      )}
     </p>
     <Content />
   </article>
