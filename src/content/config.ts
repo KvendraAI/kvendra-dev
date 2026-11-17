@@ -12,6 +12,8 @@ const labs = defineCollection({
     status: z.enum(['works', 'partial', 'didnt-work']),
     tools: z.array(z.string()).min(1),
     versions: z.string(),
+    // Page-only text appended to the meta line (e.g. the MCP used); not shown on the listing card.
+    metaSuffix: z.string().optional(),
     datePublished: z.coerce.date(),
     dateModified: z.coerce.date(),
     description: z.string(),
