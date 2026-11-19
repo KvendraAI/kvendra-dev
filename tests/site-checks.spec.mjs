@@ -68,6 +68,18 @@ test('llms.txt links the publications catalog', async ({ request }) => {
   expect(await r.text()).toContain(HUB);
 });
 
+test('llms.txt points to the kvendra.com overview in one marked block near the top', async ({ request }) => {
+  const r = await request.get('/llms.txt');
+  expect(r.status()).toBe(200);
+  const body = await r.text();
+  const head = body.split('\n').slice(0, 10);
+  const start = head.indexOf('<!-- commercial-pointer:start llms -->');
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(head[start + 1]).toBe('Product overview for assistants: https://kvendra.com/llms.txt');
+  expect(head[start + 2]).toBe('<!-- commercial-pointer:end -->');
+  expect(body.split('https://kvendra.com/llms.txt').length - 1).toBe(1);
+});
+
 for (const route of ROUTES) {
   test(`${route} has Open Graph and Twitter card metadata`, async ({ page }) => {
     await page.goto(route);

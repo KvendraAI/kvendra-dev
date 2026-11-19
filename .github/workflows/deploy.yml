@@ -71,6 +71,14 @@ jobs:
       # No --delete: same as the broker deploy of the STD (old hashed assets stay harmlessly).
       - run: aws s3 sync dist/ "$BUCKET" --no-progress
 
+      - name: llms.txt as text/plain; charset=utf-8
+        run: |
+          shopt -s nullglob
+          for f in dist/llms*.txt; do
+            aws s3 cp "$f" "${BUCKET}$(basename "$f")" --region "$AWS_REGION" \
+              --content-type 'text/plain; charset=utf-8' --only-show-errors
+          done
+
       - name: Invalidate CloudFront and wait
         run: |
           id=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" \
@@ -85,3 +93,4 @@ jobs:
             echo "$p $code"
             test "$code" = 200
           done
+          curl -sSI https://kvendra.dev/llms.txt | grep -i '^content-type: text/plain; charset=utf-8' > /dev/null
