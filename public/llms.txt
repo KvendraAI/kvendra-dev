@@ -2,6 +2,10 @@
 
 Purpose: read this file and install + configure a self-hosted Kvendra end-to-end for the user. Kvendra is platform-first — the core is a self-hosted knowledge-base engine (Kvendra Platform). Skills run on top of it; the CLI is an optional, alpha security layer. There is ONE primary path here: the reference stack with local Ollama embeddings (no signup, 100% local). The step-by-step / from-source / own-Postgres variants live in the Advanced install page (https://kvendra.dev/docs/self-hosting/). The hosted service (Kvendra Cloud) has its own guide: https://app.kvendra.cloud/docs/. Run the steps in order; each ends with a verification you can check before moving on. Recommended host: Claude Code.
 
+<!-- commercial-pointer:start llms -->
+Product overview for assistants: https://kvendra.com/llms.txt
+<!-- commercial-pointer:end -->
+
 ## Agent rules (read first)
 
 - Work from the USER'S PROJECT DIRECTORY (the cwd the user started you in). Do not move the session into the stack clone: `claude mcp add` registers in the local scope by default, and that scope is indexed per directory — registering from the clone attaches the server to the wrong directory.

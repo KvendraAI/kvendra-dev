@@ -17,6 +17,7 @@
  *   pointer-tier-sla.md         → FAIL (tier name / SLA promise inside the pointer)
  *   page-secret-leak.astro      → FAIL (category a in an .astro page)
  *   llms-business-leak.txt      → FAIL (category b in a .txt file)
+ *   llms-pointer-allowed.txt    → PASS (marked, link-only pointer in a .txt file)
  * plus the linter-allow marker line itself (ISSUE-KVD-DEV-637E1B):
  *   marker-names-own-rule.md    → PASS (marker not matched against the rule it names)
  *   marker-hides-secret.md      → FAIL (category a inside a marker is still reported)
@@ -138,6 +139,11 @@ const cases = [
       { category: 'b', ruleId: 'pricing-tier-sku', line: 2 },
       { category: 'b', ruleId: 'sso-enterprise-auth', line: 2 },
     ],
+  },
+  {
+    file: 'llms-pointer-allowed.txt',
+    expect: 'pass',
+    want: [],
   },
   {
     file: 'marker-names-own-rule.md',

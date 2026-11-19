@@ -1,0 +1,9 @@
+# Fixture — llms.txt with a marked, link-only product overview pointer (MUST pass)
+
+Purpose: install a self-hosted Kvendra end-to-end.
+
+<!-- commercial-pointer:start llms -->
+Product overview for assistants: https://kvendra.com/llms.txt
+<!-- commercial-pointer:end -->
+
+## Agent rules (read first)
